@@ -4,7 +4,8 @@
       "Bash(npm install:*)",
       "Bash(mkdir:*)",
       "Bash(rmdir:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "mcp__vooster-ai__get_next_task"
     ],
     "deny": []
   }

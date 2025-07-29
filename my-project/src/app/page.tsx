@@ -1,168 +1,128 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { CheckCircle, Github, Copy, Sparkles } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
-
-const PACKAGE_NAME = '@easynext/cli';
-const CURRENT_VERSION = 'v0.1.35';
-
-function latestVersion(packageName: string) {
-  return axios
-    .get('https://registry.npmjs.org/' + packageName + '/latest')
-    .then((res) => res.data.version);
-}
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { BarChart3, TrendingUp, Shield, Clock } from 'lucide-react'
 
 export default function Home() {
-  const { toast } = useToast();
-  const [latest, setLatest] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchLatestVersion = async () => {
-      try {
-        const version = await latestVersion(PACKAGE_NAME);
-        setLatest(`v${version}`);
-      } catch (error) {
-        console.error('Failed to fetch version info:', error);
-      }
-    };
-    fetchLatestVersion();
-  }, []);
-
-  const handleCopyCommand = () => {
-    navigator.clipboard.writeText(`npm install -g ${PACKAGE_NAME}@latest`);
-    toast({
-      description: 'Update command copied to clipboard',
-    });
-  };
-
-  const needsUpdate = latest && latest !== CURRENT_VERSION;
-
   return (
-    <div className="flex min-h-screen relative overflow-hidden">
-      {/* Main Content */}
-      <div className="min-h-screen flex bg-gray-100">
-        <div className="flex flex-col p-5 md:p-8 space-y-4">
-          <h1 className="text-3xl md:text-5xl font-semibold tracking-tighter !leading-tight text-left">
-            Easiest way to start
-            <br /> Next.js project
-            <br /> with Cursor
-          </h1>
-
-          <p className="text-lg text-muted-foreground">
-            Get Pro-created Next.js bootstrap just in seconds
-          </p>
-
-          <div className="flex items-center gap-2">
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="gap-2 w-fit rounded-full px-4 py-2 border border-black"
-            >
-              <a href="https://github.com/easynextjs/easynext" target="_blank">
-                <Github className="w-4 h-4" />
-                GitHub
-              </a>
+    <div className="container mx-auto px-6 py-12">
+      {/* Hero Section */}
+      <div className="text-center mb-16">
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">
+          네이버 플레이스 순위를<br />
+          <span className="text-blue-600">실시간으로 추적하세요</span>
+        </h1>
+        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          경쟁사 분석부터 내 매장 순위 관리까지,<br />
+          데이터 기반의 스마트한 마케팅을 시작하세요.
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Link href="/auth/signup">
+            <Button size="lg">
+              무료로 시작하기
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="gap-2 w-fit rounded-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white"
-            >
-              <a href="https://easynext.org/premium" target="_blank">
-                <Sparkles className="w-4 h-4" />
-                Premium
-              </a>
+          </Link>
+          <Link href="/auth/login">
+            <Button size="lg" variant="outline">
+              로그인
             </Button>
-          </div>
-          <Section />
+          </Link>
         </div>
       </div>
 
-      <div className="min-h-screen ml-16 flex-1 flex flex-col items-center justify-center space-y-4">
-        <div className="flex flex-col items-center space-y-2">
-          <p className="text-muted-foreground">
-            Current Version: {CURRENT_VERSION}
-          </p>
-          <p className="text-muted-foreground">
-            Latest Version:{' '}
-            <span className="font-bold">{latest || 'Loading...'}</span>
-          </p>
-        </div>
-
-        {needsUpdate && (
-          <div className="flex flex-col items-center space-y-2">
-            <p className="text-yellow-600">New version available!</p>
-            <p className="text-sm text-muted-foreground">
-              Copy and run the command below to update:
-            </p>
-            <div className="relative group">
-              <pre className="bg-gray-100 p-4 rounded-lg">
-                npm install -g {PACKAGE_NAME}@latest
-              </pre>
-              <button
-                onClick={handleCopyCommand}
-                className="absolute top-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Copy className="w-4 h-4" />
-              </button>
+      {/* Features */}
+      <div className="grid md:grid-cols-3 gap-8 mb-16">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <BarChart3 className="w-8 h-8 text-blue-600" />
+              <h3 className="text-xl font-semibold">실시간 순위 추적</h3>
             </div>
+            <p className="text-gray-600">
+              매일 2회 자동으로 순위를 확인하여<br />
+              변화 추이를 한눈에 파악할 수 있습니다.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <TrendingUp className="w-8 h-8 text-green-600" />
+              <h3 className="text-xl font-semibold">경쟁사 분석</h3>
+            </div>
+            <p className="text-gray-600">
+              같은 키워드로 검색되는 경쟁사들의<br />
+              순위 변화를 함께 모니터링하세요.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Shield className="w-8 h-8 text-purple-600" />
+              <h3 className="text-xl font-semibold">마케팅 인사이트</h3>
+            </div>
+            <p className="text-gray-600">
+              성공한 마케팅 전략과 작업 메모를<br />
+              크레딧으로 열람할 수 있습니다.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* How it works */}
+      <div className="text-center mb-16">
+        <h2 className="text-3xl font-bold mb-12">간단한 3단계로 시작하세요</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="space-y-4">
+            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
+              1
+            </div>
+            <h3 className="text-xl font-semibold">플레이스 등록</h3>
+            <p className="text-gray-600">
+              네이버 플레이스 URL과<br />
+              추적하고 싶은 검색어를 입력하세요
+            </p>
           </div>
-        )}
+          
+          <div className="space-y-4">
+            <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
+              2
+            </div>
+            <h3 className="text-xl font-semibold">자동 모니터링</h3>
+            <p className="text-gray-600">
+              매일 오전 11시, 오후 2시에<br />
+              자동으로 순위를 확인합니다
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
+              3
+            </div>
+            <h3 className="text-xl font-semibold">결과 확인</h3>
+            <p className="text-gray-600">
+              대시보드에서 순위 변화를<br />
+              그래프와 표로 확인하세요
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="text-center bg-blue-50 rounded-2xl p-12">
+        <h2 className="text-3xl font-bold mb-4">지금 바로 시작해보세요</h2>
+        <p className="text-gray-600 mb-8">
+          무료 회원가입으로 Place Log Pro의 모든 기능을 경험해보세요
+        </p>
+        <Link href="/auth/signup">
+          <Button size="lg">
+            무료 회원가입
+          </Button>
+        </Link>
       </div>
     </div>
-  );
-}
-
-function Section() {
-  const items = [
-    { href: 'https://nextjs.org/', label: 'Next.js' },
-    { href: 'https://ui.shadcn.com/', label: 'shadcn/ui' },
-    { href: 'https://tailwindcss.com/', label: 'Tailwind CSS' },
-    { href: 'https://www.framer.com/motion/', label: 'framer-motion' },
-    { href: 'https://zod.dev/', label: 'zod' },
-    { href: 'https://date-fns.org/', label: 'date-fns' },
-    { href: 'https://ts-pattern.dev/', label: 'ts-pattern' },
-    { href: 'https://es-toolkit.dev/', label: 'es-toolkit' },
-    { href: 'https://zustand.docs.pmnd.rs/', label: 'zustand' },
-    { href: 'https://supabase.com/', label: 'supabase' },
-    { href: 'https://react-hook-form.com/', label: 'react-hook-form' },
-  ];
-
-  return (
-    <div className="flex flex-col py-5 md:py-8 space-y-2 opacity-75">
-      <p className="font-semibold">What&apos;s Included</p>
-
-      <div className="flex flex-col space-y-1 text-muted-foreground">
-        {items.map((item) => (
-          <SectionItem key={item.href} href={item.href}>
-            {item.label}
-          </SectionItem>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SectionItem({
-  children,
-  href,
-}: {
-  children: React.ReactNode;
-  href: string;
-}) {
-  return (
-    <a
-      href={href}
-      className="flex items-center gap-2 underline"
-      target="_blank"
-    >
-      <CheckCircle className="w-4 h-4" />
-      <p>{children}</p>
-    </a>
-  );
+  )
 }
