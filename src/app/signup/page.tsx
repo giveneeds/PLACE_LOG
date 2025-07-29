@@ -41,6 +41,9 @@ export default function SignupPage() {
         password: formData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            email_confirm: true
+          }
         },
       })
 
@@ -67,21 +70,23 @@ export default function SignupPage() {
         }
       }
 
-      // 이메일 확인이 필요한 경우
-      if (data?.user && !data.session) {
-        toast({
-          title: '회원가입 성공',
-          description: '이메일을 확인하여 계정을 활성화해주세요.',
-        })
-        router.push('/login')
-      } 
-      // 바로 로그인된 경우
-      else if (data?.session) {
-        toast({
-          title: '회원가입 성공',
-          description: '환영합니다!',
-        })
-        router.push('/dashboard')
+      // 회원가입 성공 처리
+      if (data?.user) {
+        if (data.session) {
+          // 바로 로그인된 경우
+          toast({
+            title: '회원가입 성공',
+            description: '환영합니다! 대시보드로 이동합니다.',
+          })
+          router.push('/dashboard')
+        } else {
+          // 이메일 확인이 필요한 경우
+          toast({
+            title: '회원가입 성공',
+            description: '로그인 페이지에서 동일한 정보로 로그인하세요.',
+          })
+          router.push('/login')
+        }
       }
     } catch (error: any) {
       toast({

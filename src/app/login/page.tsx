@@ -46,9 +46,19 @@ export default function LoginPage() {
       router.push(redirectUrl)
       router.refresh()
     } catch (error: any) {
+      console.error('Login error:', error)
+      
+      let errorMessage = '이메일 또는 비밀번호를 확인해주세요.'
+      
+      if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Supabase 설정에서 이메일 확인을 비활성화해주세요. 또는 이메일을 확인하고 다시 시도하세요.'
+      } else if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.'
+      }
+      
       toast({
         title: '로그인 실패',
-        description: error.message || '이메일 또는 비밀번호를 확인해주세요.',
+        description: errorMessage,
         variant: 'destructive',
       })
     } finally {
