@@ -48,6 +48,24 @@ export default function SignupPage() {
 
       if (error) throw error
 
+      // 사용자가 생성되었다면 profiles 테이블에 추가 시도
+      if (data?.user) {
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: data.user.email,
+            })
+          
+          if (profileError) {
+            console.log('Profile creation error (might be expected if trigger works):', profileError)
+          }
+        } catch (profileError) {
+          console.log('Profile creation failed:', profileError)
+        }
+      }
+
       // 이메일 확인이 필요한 경우
       if (data?.user && !data.session) {
         toast({

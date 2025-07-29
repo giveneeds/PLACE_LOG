@@ -30,6 +30,8 @@ export default function LoginPage() {
         password: formData.password,
       })
 
+      console.log('Login response:', { data, error })
+
       if (error) throw error
       
       toast({
