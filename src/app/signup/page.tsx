@@ -44,13 +44,26 @@ export default function SignupPage() {
         },
       })
 
+      console.log('Signup response:', { data, error })
+
       if (error) throw error
 
-      toast({
-        title: '회원가입 성공',
-        description: '이메일을 확인하여 계정을 활성화해주세요.',
-      })
-      router.push('/login')
+      // 이메일 확인이 필요한 경우
+      if (data?.user && !data.session) {
+        toast({
+          title: '회원가입 성공',
+          description: '이메일을 확인하여 계정을 활성화해주세요.',
+        })
+        router.push('/login')
+      } 
+      // 바로 로그인된 경우
+      else if (data?.session) {
+        toast({
+          title: '회원가입 성공',
+          description: '환영합니다!',
+        })
+        router.push('/dashboard')
+      }
     } catch (error: any) {
       toast({
         title: '회원가입 실패',
