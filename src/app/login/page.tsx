@@ -38,8 +38,12 @@ export default function LoginPage() {
         title: '로그인 성공',
         description: '환영합니다!',
       })
+
+      // Check for redirect parameter
+      const searchParams = new URLSearchParams(window.location.search)
+      const redirectUrl = searchParams.get('redirect') || '/dashboard'
       
-      router.push('/dashboard')
+      router.push(redirectUrl)
       router.refresh()
     } catch (error: any) {
       toast({

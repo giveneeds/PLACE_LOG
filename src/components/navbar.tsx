@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/components/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { BarChart3, LogOut, User } from 'lucide-react'
+import { canAccessAdminFeatures } from '@/lib/auth/rbac'
+import { BarChart3, LogOut, User, Settings } from 'lucide-react'
 
 export function Navbar() {
-  const { user } = useAuth()
+  const { user, userRole } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -49,9 +50,22 @@ export function Navbar() {
                 <Link href="/dashboard">
                   <Button variant="ghost">대시보드</Button>
                 </Link>
+                {canAccessAdminFeatures(userRole) && (
+                  <Link href="/admin">
+                    <Button variant="ghost">
+                      <Settings className="w-4 h-4 mr-2" />
+                      관리자
+                    </Button>
+                  </Link>
+                )}
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <User className="w-4 h-4" />
                   {user.email}
+                  {userRole && (
+                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                      {userRole === 'admin' ? '관리자' : '사용자'}
+                    </span>
+                  )}
                 </div>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />

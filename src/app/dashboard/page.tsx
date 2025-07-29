@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
 import { useToast } from '@/hooks/use-toast'
+import { AuthenticatedOnly } from '@/components/auth/role-guard'
 
 interface TrackedPlace {
   id: string
@@ -29,13 +30,7 @@ export default function DashboardPage() {
   const [trackedPlaces, setTrackedPlaces] = useState<TrackedPlace[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (user) {
-      fetchTrackedPlaces()
-    }
-  }, [user])
-
-  const fetchTrackedPlaces = async () => {
+  const fetchTrackedPlaces = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('tracked_places')
@@ -76,7 +71,13 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, supabase, toast])
+
+  useEffect(() => {
+    if (user) {
+      fetchTrackedPlaces()
+    }
+  }, [user, fetchTrackedPlaces])
 
   const getRankTrend = (latest: number | null, previous: number | null) => {
     if (!latest || !previous) return null
@@ -137,19 +138,30 @@ export default function DashboardPage() {
   const keywordGroups = groupByKeyword(trackedPlaces)
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">대시보드</h1>
-          <p className="text-gray-600 mt-1">등록된 플레이스들의 순위 변화를 확인하세요</p>
-        </div>
-        <Link href="/dashboard/add-place">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            플레이스 추가
-          </Button>
-        </Link>
+    <AuthenticatedOnly fallback={
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-gray-600">
+              대시보드를 보려면 로그인해주세요.
+            </p>
+          </CardContent>
+        </Card>
       </div>
+    }>
+      <div className="container mx-auto p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">대시보드</h1>
+            <p className="text-gray-600 mt-1">등록된 플레이스들의 순위 변화를 확인하세요</p>
+          </div>
+          <Link href="/dashboard/add-place">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              플레이스 추가
+            </Button>
+          </Link>
+        </div>
 
       {keywordGroups.length === 0 ? (
         <Card>
@@ -171,7 +183,7 @@ export default function DashboardPage() {
             <Card key={keyword}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span>"{keyword}" 검색 결과</span>
+                  <span>&quot;{keyword}&quot; 검색 결과</span>
                   <Badge variant="secondary">{places.length}개 플레이스</Badge>
                 </CardTitle>
               </CardHeader>
@@ -214,6 +226,7 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </AuthenticatedOnly>
   )
 }
