@@ -9,7 +9,7 @@ import { Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
 import { useToast } from '@/hooks/use-toast'
-import { AuthenticatedOnly } from '@/components/auth/role-guard'
+import { AuthenticatedOnly, AdminOnly } from '@/components/auth/role-guard'
 
 interface TrackedPlace {
   id: string
@@ -155,12 +155,14 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold">대시보드</h1>
             <p className="text-gray-600 mt-1">등록된 플레이스들의 순위 변화를 확인하세요</p>
           </div>
-          <Link href="/dashboard/add-place">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              플레이스 추가
-            </Button>
-          </Link>
+          <AdminOnly>
+            <Link href="/dashboard/add-place">
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                플레이스 추가
+              </Button>
+            </Link>
+          </AdminOnly>
         </div>
 
       {keywordGroups.length === 0 ? (
@@ -168,12 +170,16 @@ export default function DashboardPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-gray-600 mb-4">아직 등록된 플레이스가 없습니다.</p>
-              <Link href="/dashboard/add-place">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  첫 번째 플레이스 추가하기
-                </Button>
-              </Link>
+              <AdminOnly fallback={
+                <p className="text-sm text-gray-500">관리자가 플레이스를 등록하면 여기에 표시됩니다.</p>
+              }>
+                <Link href="/dashboard/add-place">
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    첫 번째 플레이스 추가하기
+                  </Button>
+                </Link>
+              </AdminOnly>
             </div>
           </CardContent>
         </Card>

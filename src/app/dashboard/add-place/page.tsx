@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
+import { AdminOnly } from '@/components/auth/role-guard'
 
 export default function AddPlacePage() {
   const router = useRouter()
@@ -89,23 +90,24 @@ export default function AddPlacePage() {
     }
   }
 
-  if (!user) {
-    return (
+  return (
+    <AdminOnly fallback={
       <div className="container mx-auto p-6 max-w-2xl">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-gray-600">
-              플레이스를 등록하려면 로그인해주세요.
-            </p>
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">관리자 권한 필요</h2>
+              <p className="text-gray-600 mb-4">플레이스 등록은 관리자만 가능합니다.</p>
+              <Button onClick={() => router.push('/dashboard')}>
+                대시보드로 돌아가기
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
-    )
-  }
-
-  return (
-    <div className="container mx-auto p-6 max-w-2xl">
-      <Card>
+    }>
+      <div className="container mx-auto p-6 max-w-2xl">
+        <Card>
         <CardHeader>
           <CardTitle>새 플레이스 등록</CardTitle>
         </CardHeader>
@@ -179,6 +181,7 @@ export default function AddPlacePage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </AdminOnly>
   )
 }
