@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { authApi } from '@/lib/api'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -24,8 +25,12 @@ export default function LoginPage() {
     setLoading(true)
     
     try {
-      const response = await authApi.login(formData.email, formData.password)
-      localStorage.setItem('access_token', response.access_token)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (error) throw error
       
       toast({
         title: '로그인 성공',
@@ -33,6 +38,7 @@ export default function LoginPage() {
       })
       
       router.push('/dashboard')
+      router.refresh()
     } catch (error: any) {
       toast({
         title: '로그인 실패',

@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { authApi } from '@/lib/api'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -35,7 +36,16 @@ export default function SignupPage() {
     setLoading(true)
     
     try {
-      await authApi.signup(formData.email, formData.password)
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) throw error
+
       toast({
         title: '회원가입 성공',
         description: '이메일을 확인하여 계정을 활성화해주세요.',
