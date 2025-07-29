@@ -60,10 +60,10 @@ export function Navbar() {
               </>
             ) : (
               <div className="flex gap-2">
-                <Link href="/auth/login">
+                <Link href="/login">
                   <Button variant="ghost">로그인</Button>
                 </Link>
-                <Link href="/auth/signup">
+                <Link href="/signup">
                   <Button>회원가입</Button>
                 </Link>
               </div>

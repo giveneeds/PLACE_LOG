@@ -17,12 +17,12 @@ export default function Home() {
           데이터 기반의 스마트한 마케팅을 시작하세요.
         </p>
         <div className="flex gap-4 justify-center">
-          <Link href="/auth/signup">
+          <Link href="/signup">
             <Button size="lg">
               무료로 시작하기
             </Button>
           </Link>
-          <Link href="/auth/login">
+          <Link href="/login">
             <Button size="lg" variant="outline">
               로그인
             </Button>
@@ -117,7 +117,7 @@ export default function Home() {
         <p className="text-gray-600 mb-8">
           무료 회원가입으로 Place Log Pro의 모든 기능을 경험해보세요
         </p>
-        <Link href="/auth/signup">
+        <Link href="/signup">
           <Button size="lg">
             무료 회원가입
           </Button>

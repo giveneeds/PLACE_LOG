@@ -5,7 +5,10 @@
       "Bash(mkdir:*)",
       "Bash(rmdir:*)",
       "Bash(rm:*)",
-      "mcp__vooster-ai__get_next_task"
+      "mcp__vooster-ai__get_next_task",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
