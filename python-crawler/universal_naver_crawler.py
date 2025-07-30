@@ -12,6 +12,7 @@ import os
 import logging
 import json
 import hashlib
+import urllib.parse
 from typing import Dict, List, Optional, Union, Tuple
 from datetime import datetime, timedelta
 from selenium import webdriver
@@ -166,8 +167,9 @@ class UniversalNaverCrawler:
         try:
             self.logger.info(f"Searching [{self.request_count}]: '{target_place_name}' in '{keyword}' (max rank: {max_rank})")
             
-            # 네이버 모바일 검색 URL 구성
-            search_url = f"https://m.search.naver.com/search.naver?where=m&sm=top_sly.hst&fbm=0&acr=1&ie=utf8&query={keyword}"
+            # 네이버 모바일 검색 URL 구성 (2025년 최적화)
+            encoded_keyword = urllib.parse.quote(keyword)
+            search_url = f"https://m.search.naver.com/search.naver?where=m&sm=top_sly.hst&fbm=0&acr=1&ie=utf8&query={encoded_keyword}"
             
             self.driver.get(search_url)
             self._smart_delay()
@@ -418,7 +420,127 @@ class UniversalNaverCrawler:
             return False
     
     def _find_place_rank_universal(self, target_place_name: str, max_rank: int) -> Dict:
-        """범용 순위 검색"""
+        """범용 순위 검색 (JSON 기반으로 업그레이드)"""
+        result = {
+            "rank": -1,
+            "success": False,
+            "message": "",
+            "found_shops": []
+        }
+        
+        try:
+            # 먼저 JSON 기반 파싱 시도
+            json_data = self._extract_apollo_state()
+            if json_data:
+                self.logger.info("Using JSON-based parsing (2025 method)")
+                restaurants = self._parse_restaurant_data_from_json(json_data)
+                if restaurants:
+                    return self._find_target_restaurant_in_json(restaurants, target_place_name, max_rank)
+            
+            # JSON 실패 시 기존 HTML 방식으로 폴백
+            self.logger.info("JSON parsing failed, falling back to HTML parsing")
+            return self._find_place_rank_html_fallback(target_place_name, max_rank)
+            
+        except Exception as e:
+            self.logger.error(f"Error in universal rank search: {e}")
+            result["message"] = f"Search error: {e}"
+            return result
+    
+    def _extract_apollo_state(self) -> Optional[Dict]:
+        """Extract __APOLLO_STATE__ JSON data from page"""
+        try:
+            page_source = self.driver.page_source
+            apollo_pattern = r'naver\.search\.ext\.nmb\.salt\.__APOLLO_STATE__\s*=\s*({.*?});'
+            match = re.search(apollo_pattern, page_source, re.DOTALL)
+            
+            if match:
+                json_str = match.group(1)
+                apollo_data = json.loads(json_str)
+                self.logger.info("Successfully extracted Apollo State JSON data")
+                return apollo_data
+            else:
+                self.logger.warning("Could not find __APOLLO_STATE__ in page source")
+                return None
+                
+        except json.JSONDecodeError as e:
+            self.logger.error(f"JSON parsing error: {e}")
+            return None
+        except Exception as e:
+            self.logger.error(f"Apollo state extraction error: {e}")
+            return None
+    
+    def _parse_restaurant_data_from_json(self, apollo_data: Dict) -> List[Dict]:
+        """Parse restaurant data from Apollo state JSON"""
+        restaurants = []
+        
+        try:
+            for key, value in apollo_data.items():
+                if key.startswith('RestaurantListSummary:') and isinstance(value, dict):
+                    restaurant_info = {
+                        'id': value.get('id', ''),
+                        'name': value.get('name', ''),
+                        'category': value.get('category', ''),
+                        'address': value.get('commonAddress', ''),
+                        'distance': value.get('distance', ''),
+                        'review_count': value.get('visitorReviewCount', ''),
+                        'apollo_key': key
+                    }
+                    restaurants.append(restaurant_info)
+            
+            # Sort by distance (Naver's default ordering)
+            restaurants.sort(key=lambda x: self._parse_distance(x.get('distance', '999km')))
+            self.logger.info(f"Parsed {len(restaurants)} restaurants from JSON data")
+            return restaurants
+            
+        except Exception as e:
+            self.logger.error(f"Error parsing restaurant data: {e}")
+            return []
+    
+    def _parse_distance(self, distance_str: str) -> float:
+        """Parse distance string like '8.2km' to float"""
+        try:
+            if 'km' in distance_str:
+                return float(distance_str.replace('km', ''))
+            elif 'm' in distance_str:
+                return float(distance_str.replace('m', '')) / 1000
+            else:
+                return 999.0
+        except:
+            return 999.0
+    
+    def _find_target_restaurant_in_json(self, restaurants: List[Dict], target_name: str, max_rank: int) -> Dict:
+        """Find target restaurant in JSON data"""
+        result = {
+            "rank": -1,
+            "success": False,
+            "message": "",
+            "found_shops": []
+        }
+        
+        found_shops = []
+        
+        for i, restaurant in enumerate(restaurants[:max_rank], 1):
+            restaurant_name = restaurant.get('name', '')
+            found_shops.append(restaurant_name)
+            
+            if self._is_universal_match(target_name, restaurant_name):
+                result.update({
+                    "rank": i,
+                    "success": True,
+                    "message": f"'{target_name}' found at rank {i} (JSON method)",
+                    "found_shops": found_shops[:15]
+                })
+                return result
+        
+        result.update({
+            "found_shops": found_shops[:20],
+            "message": f"'{target_name}' not found in top {min(len(restaurants), max_rank)} results (JSON method)"
+        })
+        
+        return result
+    
+    def _find_place_rank_html_fallback(self, target_place_name: str, max_rank: int) -> Dict:
+        """HTML 기반 폴백 방식 (기존 로직)"""
         result = {
             "rank": -1,
             "success": False,
@@ -429,16 +551,14 @@ class UniversalNaverCrawler:
         current_rank = 1
         found_shops = []
         scroll_count = 0
-        max_scrolls = min(max_rank // 10, 15)  # 효율적인 스크롤 제한
+        max_scrolls = min(max_rank // 10, 15)
         
         while scroll_count < max_scrolls and current_rank <= max_rank:
-            # 2025년 5월 최신 셀렉터로 플레이스 아이템 가져오기
             place_items = self._get_place_items_2025()
             
             if not place_items:
                 break
             
-            # 새로운 아이템들만 처리
             for item in place_items[len(found_shops):]:
                 try:
                     place_info = self._extract_place_info_2025(item)
@@ -448,17 +568,15 @@ class UniversalNaverCrawler:
                     place_name = place_info['name']
                     is_ad = place_info.get('is_ad', False)
                     
-                    # 광고가 아닌 경우만 순위에 포함
                     if not is_ad:
                         found_shops.append(place_name)
                         
-                        # 범용 매칭 (모든 지역/업종 대응)
                         if self._is_universal_match(target_place_name, place_name):
                             result.update({
                                 "rank": current_rank,
                                 "success": True,
-                                "message": f"'{target_place_name}' found at rank {current_rank}",
-                                "found_shops": found_shops[:15]  # 상위 15개만
+                                "message": f"'{target_place_name}' found at rank {current_rank} (HTML fallback)",
+                                "found_shops": found_shops[:15]
                             })
                             return result
                         
@@ -471,29 +589,27 @@ class UniversalNaverCrawler:
                     self.logger.debug(f"Error processing item: {e}")
                     continue
             
-            # 다음 페이지 로드를 위한 스크롤
             if not self._scroll_with_loading_wait():
                 break
             
             scroll_count += 1
-            self._smart_delay(factor=0.3)  # 스크롤 간 짧은 지연
+            self._smart_delay(factor=0.3)
         
-        # 찾지 못한 경우
         result.update({
             "found_shops": found_shops[:20],
-            "message": f"'{target_place_name}' not found in top {min(current_rank-1, max_rank)} results"
+            "message": f"'{target_place_name}' not found in top {min(current_rank-1, max_rank)} results (HTML fallback)"
         })
         
         return result
     
     def _get_place_items_2025(self) -> List:
-        """2025년 5월 최신 플레이스 아이템 선택자"""
+        """2025년 5월 최신 플레이스 아이템 선택자 (폴백용)"""
         selectors = [
-            'li[data-nclick*="plc"]',  # 메인 (2025년 5월)
-            'li.place_unit',           # 백업 1
-            'li[data-place-id]',       # 백업 2
-            'ul.list_place li',        # 백업 3
-            '.place_list li'           # 백업 4
+            'li[data-nclick*="plc"]',
+            'li.place_unit',
+            'li[data-place-id]',
+            'ul.list_place li',
+            '.place_list li'
         ]
         
         for selector in selectors:
