@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
-import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
 import { AdminOnly } from '@/components/auth/role-guard'
 
@@ -16,7 +15,6 @@ export default function AddPlacePage() {
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
-  const supabase = createClient()
   
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -62,16 +60,26 @@ export default function AddPlacePage() {
     setLoading(true)
     
     try {
-      const { error } = await supabase
-        .from('tracked_places')
-        .insert({
-          user_id: user.id,
-          place_url: formData.place_url,
-          place_name: formData.place_name || '플레이스명 미설정',
-          search_keyword: formData.search_keyword,
-        })
+      // Use the advanced keywords API for consistency
+      const response = await fetch('/api/admin/keywords', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          keyword: formData.search_keyword,
+          placeUrl: formData.place_url,
+          placeName: formData.place_name || '플레이스명 미설정',
+          tags: [], // Empty tags for simple registration
+          periodStart: null,
+          periodEnd: null,
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to register place')
+      }
 
       toast({
         title: '플레이스 등록 완료',

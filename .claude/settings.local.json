@@ -8,7 +8,8 @@
       "mcp__vooster-ai__get_next_task",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(python:*)"
     ],
     "deny": []
   }

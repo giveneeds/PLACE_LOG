@@ -1,0 +1,42 @@
+name: Daily Naver Place Crawler
+
+on:
+  schedule:
+    # 매일 오전 11:20 (KST) = 02:20 (UTC)
+    - cron: '20 2 * * *'
+    # 매일 오후 1:50 (KST) = 04:50 (UTC)  
+    - cron: '50 4 * * *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        cd python-crawler
+        pip install -r requirements.txt
+        
+    - name: Run crawler
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        CRAWLER_MODE: tracked
+      run: |
+        cd python-crawler
+        python crawler.py
+        
+    - name: Notify completion
+      if: always()
+      run: |
+        echo "Crawler job completed at $(date)"
+        # 선택사항: Slack/Discord 알림 추가 가능
