@@ -91,8 +91,8 @@ export async function GET(request: NextRequest) {
       if (!acc[placeId]) {
         acc[placeId] = {
           placeId,
-          placeName: item.place_name || item.tracked_places.place_name,
-          placeUrl: item.tracked_places.place_url,
+          placeName: item.place_name || (item.tracked_places as any)?.place_name,
+          placeUrl: (item.tracked_places as any)?.place_url,
           keyword: item.keyword,
           data: []
         }
