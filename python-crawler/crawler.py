@@ -34,10 +34,10 @@ class NaverPlaceCrawler:
             print("Warning: Supabase credentials not found")
 
     def build_url(self, keyword):
-        """검색어를 기반으로 네이버 모바일 플레이스 검색 URL을 생성"""
+        """검색어를 기반으로 네이버 모바일 플레이스 리스트 URL을 생성"""
         encoded_keyword = urllib.parse.quote(keyword)
-        # 모바일 버전 URL 사용 (모바일 순위가 더 중요함)
-        return f"https://m.place.naver.com/search?query={encoded_keyword}"
+        # 올바른 네이버 플레이스 리스트 URL (더보기 페이지)
+        return f"https://m.place.naver.com/restaurant/list?query={encoded_keyword}"
 
     def search_place_rank(self, keyword, shop_name):
         """
@@ -77,7 +77,7 @@ class NaverPlaceCrawler:
                 print(result["message"])
                 return result
             
-            # 모바일 HTML 직접 파싱 (iframe 없음)
+            # 네이버 플레이스 리스트 페이지 직접 파싱
             soup = BeautifulSoup(response.text, "html.parser")
             
             # 장소 목록 찾기 (다양한 선택자 시도)
