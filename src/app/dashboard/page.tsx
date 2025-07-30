@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { Plus, TrendingUp, TrendingDown, Minus, BarChart } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
 import { useToast } from '@/hooks/use-toast'
 import { AuthenticatedOnly, AdminOnly } from '@/components/auth/role-guard'
+import { useRealtimeUpdates } from '@/hooks/use-realtime'
 
 interface TrackedPlace {
   id: string
@@ -20,6 +21,22 @@ interface TrackedPlace {
   created_at: string
   latest_rank?: number
   previous_rank?: number
+  keyword_id?: string
+  period_start?: string
+  period_end?: string
+  place_tags?: Array<{
+    tags: {
+      id: string
+      name: string
+    }
+  }>
+}
+
+interface Keyword {
+  id: string
+  keyword: string
+  created_at: string
+  tracked_places: TrackedPlace[]
 }
 
 export default function DashboardPage() {
@@ -27,41 +44,34 @@ export default function DashboardPage() {
   const { toast } = useToast()
   const supabase = createClient()
   
-  const [trackedPlaces, setTrackedPlaces] = useState<TrackedPlace[]>([])
+  const [keywords, setKeywords] = useState<Keyword[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchTrackedPlaces = useCallback(async () => {
+  const fetchKeywords = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('tracked_places')
-        .select(`
-          *,
-          rankings (
-            rank,
-            checked_at
+      const response = await fetch('/api/admin/keywords')
+      if (!response.ok) throw new Error('Failed to fetch keywords')
+      
+      const { data } = await response.json()
+      
+      // Process each keyword's tracked places
+      const processedKeywords = data?.map((keyword: any) => ({
+        ...keyword,
+        tracked_places: keyword.tracked_places?.map((place: any) => {
+          const rankings = place.rankings || []
+          const sortedRankings = rankings.sort((a: any, b: any) => 
+            new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime()
           )
-        `)
-        .eq('user_id', user?.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
+          
+          return {
+            ...place,
+            latest_rank: sortedRankings[0]?.rank || null,
+            previous_rank: sortedRankings[1]?.rank || null,
+          }
+        }) || []
+      })) || []
 
-      if (error) throw error
-
-      // 각 플레이스의 최신 순위와 이전 순위 계산
-      const placesWithRanks = data?.map(place => {
-        const rankings = place.rankings || []
-        const sortedRankings = rankings.sort((a, b) => 
-          new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime()
-        )
-        
-        return {
-          ...place,
-          latest_rank: sortedRankings[0]?.rank || null,
-          previous_rank: sortedRankings[1]?.rank || null,
-        }
-      }) || []
-
-      setTrackedPlaces(placesWithRanks)
+      setKeywords(processedKeywords)
     } catch (error: any) {
       toast({
         title: '데이터 로드 실패',
@@ -71,13 +81,18 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }, [user, supabase, toast])
+  }, [toast])
 
   useEffect(() => {
     if (user) {
-      fetchTrackedPlaces()
+      fetchKeywords()
     }
-  }, [user, fetchTrackedPlaces])
+  }, [user, fetchKeywords])
+
+  // Subscribe to real-time updates
+  useRealtimeUpdates('admin-updates', 'keyword-added', (payload) => {
+    fetchKeywords() // Refresh data when new keyword is added
+  })
 
   const getRankTrend = (latest: number | null, previous: number | null) => {
     if (!latest || !previous) return null
@@ -100,18 +115,6 @@ export default function DashboardPage() {
     }
   }
 
-  const groupByKeyword = (places: TrackedPlace[]) => {
-    const grouped = places.reduce((acc, place) => {
-      const keyword = place.search_keyword
-      if (!acc[keyword]) {
-        acc[keyword] = []
-      }
-      acc[keyword].push(place)
-      return acc
-    }, {} as Record<string, TrackedPlace[]>)
-
-    return Object.entries(grouped)
-  }
 
   if (!user) {
     return (
@@ -135,7 +138,6 @@ export default function DashboardPage() {
     )
   }
 
-  const keywordGroups = groupByKeyword(trackedPlaces)
 
   return (
     <AuthenticatedOnly fallback={
@@ -165,7 +167,7 @@ export default function DashboardPage() {
           </AdminOnly>
         </div>
 
-      {keywordGroups.length === 0 ? (
+      {keywords.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
@@ -185,48 +187,74 @@ export default function DashboardPage() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {keywordGroups.map(([keyword, places]) => (
-            <Card key={keyword}>
+          {keywords.map((keyword) => (
+            <Card key={keyword.id}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span>&quot;{keyword}&quot; 검색 결과</span>
-                  <Badge variant="secondary">{places.length}개 플레이스</Badge>
+                  <span>&quot;{keyword.keyword}&quot; 검색 결과</span>
+                  <Badge variant="secondary">{keyword.tracked_places?.length || 0}개 플레이스</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {places.map(place => {
-                    const trend = getRankTrend(place.latest_rank, place.previous_rank)
-                    return (
-                      <div
-                        key={place.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                      >
-                        <div className="flex-1">
-                          <h3 className="font-medium">{place.place_name}</h3>
-                          <p className="text-sm text-gray-500 truncate max-w-md">
-                            {place.place_url}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg font-bold">
-                                {place.latest_rank ? `${place.latest_rank}위` : '순위권 밖'}
-                              </span>
-                              {getRankTrendIcon(trend)}
-                            </div>
-                            {place.previous_rank && (
-                              <span className="text-sm text-gray-500">
-                                이전: {place.previous_rank}위
-                              </span>
+                {keyword.tracked_places?.length ? (
+                  <div className="space-y-3">
+                    {keyword.tracked_places.map(place => {
+                      const trend = getRankTrend(place.latest_rank, place.previous_rank)
+                      return (
+                        <div
+                          key={place.id}
+                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                        >
+                          <div className="flex-1">
+                            <h3 className="font-medium">{place.place_name}</h3>
+                            <p className="text-sm text-gray-500 truncate max-w-md">
+                              {place.place_url}
+                            </p>
+                            {place.place_tags && place.place_tags.length > 0 && (
+                              <div className="flex gap-1 mt-2">
+                                {place.place_tags.map(({ tags }) => (
+                                  <Badge key={tags.id} variant="outline" className="text-xs">
+                                    {tags.name}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            {(place.period_start || place.period_end) && (
+                              <p className="text-xs text-gray-400 mt-1">
+                                기간: {place.period_start || '시작일 미정'} ~ {place.period_end || '종료일 미정'}
+                              </p>
                             )}
                           </div>
+                          <div className="flex items-center gap-4">
+                            <Link href={`/dashboard/${place.id}`}>
+                              <Button variant="ghost" size="sm">
+                                <BarChart className="w-4 h-4 mr-2" />
+                                상세 분석
+                              </Button>
+                            </Link>
+                            <div className="text-right">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg font-bold">
+                                  {place.latest_rank ? `${place.latest_rank}위` : '순위권 밖'}
+                                </span>
+                                {getRankTrendIcon(trend)}
+                              </div>
+                              {place.previous_rank && (
+                                <span className="text-sm text-gray-500">
+                                  이전: {place.previous_rank}위
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500 py-4">
+                    이 키워드에 등록된 플레이스가 없습니다.
+                  </p>
+                )}
               </CardContent>
             </Card>
           ))}

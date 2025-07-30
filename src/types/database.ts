@@ -30,6 +30,9 @@ export interface Database {
           search_keyword: string
           is_active: boolean | null
           created_at: string | null
+          keyword_id: string | null
+          period_start: string | null
+          period_end: string | null
         }
         Insert: {
           id?: string
@@ -39,6 +42,9 @@ export interface Database {
           search_keyword: string
           is_active?: boolean | null
           created_at?: string | null
+          keyword_id?: string | null
+          period_start?: string | null
+          period_end?: string | null
         }
         Update: {
           id?: string
@@ -48,6 +54,9 @@ export interface Database {
           search_keyword?: string
           is_active?: boolean | null
           created_at?: string | null
+          keyword_id?: string | null
+          period_start?: string | null
+          period_end?: string | null
         }
       }
       rankings: {
@@ -163,6 +172,104 @@ export interface Database {
           user_id?: string | null
           credits_used?: number | null
           viewed_at?: string | null
+        }
+      }
+      keywords: {
+        Row: {
+          id: string
+          keyword: string
+          created_by: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          keyword: string
+          created_by?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          keyword?: string
+          created_by?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      tags: {
+        Row: {
+          id: string
+          name: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string | null
+        }
+      }
+      place_tags: {
+        Row: {
+          id: string
+          tracked_place_id: string | null
+          tag_id: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          tracked_place_id?: string | null
+          tag_id?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          tracked_place_id?: string | null
+          tag_id?: string | null
+          created_at?: string | null
+        }
+      }
+      crawler_results: {
+        Row: {
+          id: string
+          tracked_place_id: string | null
+          keyword: string
+          place_name: string | null
+          rank: number | null
+          review_count: number | null
+          visitor_review_count: number | null
+          blog_review_count: number | null
+          crawled_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          tracked_place_id?: string | null
+          keyword: string
+          place_name?: string | null
+          rank?: number | null
+          review_count?: number | null
+          visitor_review_count?: number | null
+          blog_review_count?: number | null
+          crawled_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          tracked_place_id?: string | null
+          keyword?: string
+          place_name?: string | null
+          rank?: number | null
+          review_count?: number | null
+          visitor_review_count?: number | null
+          blog_review_count?: number | null
+          crawled_at?: string | null
+          created_at?: string | null
         }
       }
     }
