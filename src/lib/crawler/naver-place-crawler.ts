@@ -21,8 +21,11 @@ export class NaverPlaceCrawler {
 
   async init() {
     try {
+      // Vercel 환경 감지
+      const isVercel = process.env.VERCEL === '1'
+      
       this.browser = await puppeteer.launch({
-        headless: true, // 프로덕션에서는 true
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -30,11 +33,19 @@ export class NaverPlaceCrawler {
           '--disable-gpu',
           '--no-first-run',
           '--no-zygote',
-          '--deterministic-fetch',
-          '--disable-features=TranslateUI',
+          '--single-process', // Vercel에서 중요
+          '--disable-features=TranslateUI,VizDisplayCompositor',
           '--disable-ipc-flooding-protection',
-          '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        ]
+          '--disable-renderer-backgrounding',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-background-networking',
+          '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          ...(isVercel ? ['--disable-extensions'] : [])
+        ],
+        ...(isVercel ? { 
+          executablePath: '/usr/bin/google-chrome',
+          timeout: 30000 
+        } : {})
       })
       
       this.page = await this.browser.newPage()
@@ -76,7 +87,7 @@ export class NaverPlaceCrawler {
       await this.page.waitForSelector('.place_bluelink', { timeout: 10000 })
       
       // 약간의 추가 대기 (동적 콘텐츠 로딩)
-      await this.page.waitForTimeout(2000)
+      await new Promise(resolve => setTimeout(resolve, 2000))
 
       // 페이지 HTML 가져오기
       const html = await this.page.content()
@@ -160,7 +171,7 @@ export class NaverPlaceCrawler {
       })
 
       // 상세 정보 로딩 대기
-      await this.page.waitForTimeout(3000)
+      await new Promise(resolve => setTimeout(resolve, 3000))
 
       const html = await this.page.content()
       const $ = cheerio.load(html)

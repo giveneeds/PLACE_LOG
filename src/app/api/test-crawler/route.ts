@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { NaverPlaceCrawler } from '@/lib/crawler/naver-place-crawler'
 import { createClient } from '@/lib/supabase/server'
+
+// Node.js 런타임 사용 (Puppeteer 때문에 필요)
+export const runtime = 'nodejs'
+export const maxDuration = 60 // 60초 타임아웃
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,6 +36,8 @@ export async function POST(request: NextRequest) {
 
     console.log(`Testing crawler for keyword: ${keyword}`)
 
+    // 동적 import로 크롤러 로드 (서버사이드에서만)
+    const { NaverPlaceCrawler } = await import('@/lib/crawler/naver-place-crawler')
     const crawler = new NaverPlaceCrawler()
     
     try {

@@ -1,6 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Node.js 런타임 사용 (Puppeteer 때문에 필요)
+export const runtime = 'nodejs'
+export const maxDuration = 300 // 5분 타임아웃 (크롤링 시간 고려)
+
 const MAX_RETRIES = 3
 const RETRY_DELAY = 5000 // 5 seconds
 
