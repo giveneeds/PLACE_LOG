@@ -13,10 +13,15 @@ class NaverPlaceCrawler:
     
     def __init__(self):
         self.logger = logging.getLogger("NaverPlaceCrawler")
+        # 모바일 User-Agent 사용 (모바일 순위가 더 중요함)
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
             "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-            "Referer": "https://map.naver.com/"
+            "Referer": "https://m.place.naver.com/",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1"
         }
         
         # Supabase 설정
@@ -29,9 +34,10 @@ class NaverPlaceCrawler:
             print("Warning: Supabase credentials not found")
 
     def build_url(self, keyword):
-        """검색어를 기반으로 네이버 지도 검색 URL을 생성"""
+        """검색어를 기반으로 네이버 모바일 플레이스 검색 URL을 생성"""
         encoded_keyword = urllib.parse.quote(keyword)
-        return f"https://map.naver.com/p/search/{encoded_keyword}?searchType=place"
+        # 모바일 버전 URL 사용 (모바일 순위가 더 중요함)
+        return f"https://m.place.naver.com/search?query={encoded_keyword}"
 
     def search_place_rank(self, keyword, shop_name):
         """
@@ -71,33 +77,11 @@ class NaverPlaceCrawler:
                 print(result["message"])
                 return result
             
-            # HTML 파싱
+            # 모바일 HTML 직접 파싱 (iframe 없음)
             soup = BeautifulSoup(response.text, "html.parser")
             
-            # iframe URL 추출
-            iframe_src = None
-            for iframe in soup.find_all("iframe"):
-                if iframe.get("id") == "searchIframe":
-                    iframe_src = iframe.get("src")
-                    break
-            
-            if not iframe_src:
-                # iframe URL을 찾을 수 없는 경우 추정
-                iframe_src = f"https://pcmap.place.naver.com/place/list?query={urllib.parse.quote(keyword)}"
-            
-            # iframe 내용 요청
-            iframe_response = session.get(iframe_src, timeout=10)
-            
-            if iframe_response.status_code != 200:
-                result["message"] = f"iframe 요청 실패: 상태 코드 {iframe_response.status_code}"
-                print(result["message"])
-                return result
-            
-            # iframe 내용 파싱
-            iframe_soup = BeautifulSoup(iframe_response.text, "html.parser")
-            
             # 장소 목록 찾기 (다양한 선택자 시도)
-            place_items = self._find_place_items(iframe_soup)
+            place_items = self._find_place_items(soup)
             
             if not place_items:
                 result["message"] = "장소 목록을 찾을 수 없습니다."
@@ -147,66 +131,112 @@ class NaverPlaceCrawler:
         return result
 
     def _find_place_items(self, soup):
-        """다양한 선택자로 장소 아이템 찾기"""
-        selectors = [
-            "div.Ryr1F#_pcmap_list_scroll_container > ul > li",
-            "li.VLTHu",
-            "li.UEzoS", 
-            "ul._3l82D > li",
-            "ul._1s-8x > li",
-            "div.place_section > ul > li",
-            ".api_subject_bx > ul > li",
-            "div._1EKsQ li.YjsMB",
-            "li[data-index]",  # 추가 선택자
-            ".place_list_item",  # 추가 선택자
+        """모바일 버전 선택자로 장소 아이템 찾기"""
+        # 모바일 네이버 플레이스의 선택자들
+        mobile_selectors = [
+            # 모바일 검색 결과 리스트
+            "div.list_place li",
+            "ul.list_place li", 
+            "li.place_item",
+            "div.place_list li",
+            "div.search_list li",
+            ".PlaceListView li",
+            ".search-result li",
+            "li[data-place-id]",
+            "li.place",
+            # 일반적인 리스트 아이템들
+            "ul li:has(.place_title)",
+            "ul li:has(.place_name)",
+            "ul li:has(h3)",
+            "ul li:has(.name)",
+            # 백업 선택자들
+            "ul li",
+            "div[role='list'] > div",
+            ".list > li",
         ]
         
-        for selector in selectors:
-            items = soup.select(selector)
-            if items:
-                print(f"장소 목록 발견: {selector} ({len(items)}개)")
-                return items
+        for selector in mobile_selectors:
+            try:
+                items = soup.select(selector)
+                if items and len(items) >= 3:  # 최소 3개 이상의 아이템이 있어야 유효한 리스트
+                    print(f"모바일 장소 목록 발견: {selector} ({len(items)}개)")
+                    return items
+            except Exception as e:
+                print(f"선택자 '{selector}' 오류: {e}")
+                continue
         
+        print("장소 목록을 찾을 수 없습니다. HTML 구조 확인 필요")
         return []
 
     def _is_advertisement(self, item):
-        """광고인지 확인"""
-        ad_selectors = [
-            ".gU6bV._DHlh", 
+        """모바일 버전 광고 확인"""
+        mobile_ad_selectors = [
+            # 모바일 광고 표시
+            ".ad",
             ".ad_area", 
-            ".ad-badge", 
-            ".OErwL", 
-            "span.OErwL",
+            ".ad-badge",
+            ".advertisement",
+            ".sponsored",
+            "[data-ad='true']",
+            "[data-ad]",
             ".place_ad",
-            "[data-ad]"
+            ".ad_place",
+            # 광고 텍스트 포함
+            ":contains('광고')",
+            ":contains('AD')",
+            ":contains('Sponsored')",
         ]
         
-        for ad_selector in ad_selectors:
-            if item.select_one(ad_selector):
-                return True
+        # 텍스트 기반 광고 감지
+        item_text = item.get_text().lower()
+        if any(ad_text in item_text for ad_text in ['광고', 'ad', 'sponsored']):
+            return True
+        
+        for ad_selector in mobile_ad_selectors:
+            try:
+                if item.select_one(ad_selector):
+                    return True
+            except:
+                continue
         return False
 
     def _extract_shop_name(self, item):
-        """상점명 추출"""
-        shop_name_selectors = [
-            ".place_bluelink.tWIhh > span.O_Uah",
-            "span.place_bluelink",
-            "span.TYaxT",
-            "span.LDgIH",
-            "span.OXiLu", 
-            "span._3Apve",
-            "span.place_bluelink._3Apve",
+        """모바일 버전 상점명 추출"""
+        mobile_shop_name_selectors = [
+            # 모바일 플레이스 상호명 선택자들
+            ".place_title",
+            ".place_name", 
+            ".name",
+            ".title",
+            "h3",
+            "h2",
+            "strong",
+            ".business_name",
+            ".shop_name",
+            # 링크 안의 텍스트
+            "a[href*='place'] span",
+            "a[href*='place']",
+            "a.place_link",
             ".place_bluelink",
-            "a.place_link > span",
-            ".place_title",  # 추가 선택자
-            "h3",  # 추가 선택자
-            ".name"  # 추가 선택자
+            # 일반적인 선택자들
+            ".text_bold",
+            ".font_bold",
+            "[data-place-name]",
+            # 백업 선택자들
+            "div:first-child",
+            "span:first-child",
         ]
         
-        for selector in shop_name_selectors:
-            element = item.select_one(selector)
-            if element:
-                return element.get_text().strip()
+        for selector in mobile_shop_name_selectors:
+            try:
+                element = item.select_one(selector)
+                if element:
+                    name = element.get_text().strip()
+                    # 유효한 이름인지 확인 (너무 짧거나 숫자만 있는 경우 제외)
+                    if name and len(name) > 1 and not name.isdigit():
+                        return name
+            except Exception as e:
+                continue
         
         return None
 

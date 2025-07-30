@@ -15,20 +15,21 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from crawler import NaverPlaceCrawler
 
 def test_basic_search():
-    """기본 검색 기능 테스트"""
-    print("=== 기본 검색 기능 테스트 ===")
+    """모바일 버전 기본 검색 기능 테스트"""
+    print("=== 모바일 크롤러 검색 기능 테스트 ===")
     
     crawler = NaverPlaceCrawler()
     
-    # 테스트 케이스들
+    # 모바일 크롤링에 적합한 테스트 케이스들
     test_cases = [
-        {"keyword": "강남 맛집", "shop_name": "미가연"},
-        {"keyword": "홍대 카페", "shop_name": "스타벅스"},
-        {"keyword": "명동 미용실", "shop_name": "준오헤어"},
+        {"keyword": "강남 카페", "shop_name": "스타벅스"},
+        {"keyword": "홍대 맛집", "shop_name": "맥도날드"}, 
+        {"keyword": "명동 치킨", "shop_name": "BBQ"},
     ]
     
     for i, test_case in enumerate(test_cases, 1):
         print(f"\n테스트 {i}: {test_case['keyword']} -> {test_case['shop_name']}")
+        print(f"모바일 검색 URL: {crawler.build_url(test_case['keyword'])}")
         
         result = crawler.search_place_rank(
             test_case['keyword'], 
@@ -37,7 +38,7 @@ def test_basic_search():
         
         print(f"결과: {result['message']}")
         if result['success']:
-            print(f"순위: {result['rank']}위")
+            print(f"🎯 모바일 순위: {result['rank']}위")
         
         if result['found_shops']:
             print(f"발견된 상점들: {', '.join(result['found_shops'][:5])}")

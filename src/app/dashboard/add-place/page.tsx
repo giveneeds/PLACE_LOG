@@ -23,25 +23,43 @@ export default function AddPlacePage() {
     search_keyword: '',
   })
 
-  // 네이버 플레이스 URL에서 플레이스명 추출 (간단한 예시)
-  const extractPlaceName = (url: string) => {
+  // 네이버 플레이스 URL에서 플레이스명 추출 및 ID 추출
+  const extractPlaceInfo = (url: string) => {
     try {
       const urlObj = new URL(url)
+      let placeId = ''
+      
       if (urlObj.hostname.includes('naver')) {
-        // 실제로는 더 정교한 추출 로직이 필요
-        return '네이버 플레이스' // 임시
+        // 모바일 버전: https://m.place.naver.com/restaurant/38758389
+        // 데스크톱 버전: https://map.naver.com/v5/entry/place/38758389
+        
+        if (urlObj.hostname === 'm.place.naver.com') {
+          // 모바일 버전에서 ID 추출
+          const pathParts = urlObj.pathname.split('/')
+          placeId = pathParts[pathParts.length - 1]
+        } else if (urlObj.hostname === 'map.naver.com') {
+          // 데스크톱 버전에서 ID 추출
+          const match = urlObj.pathname.match(/\/place\/(\d+)/)
+          if (match) placeId = match[1]
+        }
+        
+        return {
+          placeName: `네이버 플레이스 (ID: ${placeId})`,
+          placeId: placeId
+        }
       }
     } catch (error) {
-      // URL 파싱 실패
+      console.error('URL 파싱 실패:', error)
     }
-    return ''
+    return { placeName: '', placeId: '' }
   }
 
   const handleUrlChange = (url: string) => {
+    const { placeName } = extractPlaceInfo(url)
     setFormData(prev => ({
       ...prev,
       place_url: url,
-      place_name: url ? extractPlaceName(url) : ''
+      place_name: url ? placeName : ''
     }))
   }
 
@@ -126,14 +144,14 @@ export default function AddPlacePage() {
               <Input
                 id="place_url"
                 type="url"
-                placeholder="https://map.naver.com/v5/entry/place/..."
+                placeholder="https://m.place.naver.com/restaurant/38758389"
                 value={formData.place_url}
                 onChange={(e) => handleUrlChange(e.target.value)}
                 required
                 disabled={loading}
               />
               <p className="text-sm text-gray-500">
-                네이버 지도에서 플레이스 URL을 복사해서 붙여넣으세요.
+                네이버 플레이스 앱이나 모바일 웹에서 플레이스 URL을 복사해서 붙여넣으세요. (모바일/데스크톱 모두 지원)
               </p>
             </div>
 
