@@ -11,7 +11,15 @@
       "Bash(git push:*)",
       "Bash(python:*)",
       "Bash(touch:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(ls:*)",
+      "Bash(winget install:*)",
+      "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" -m pip install selenium webdriver-manager requests beautifulsoup4 python-dotenv)",
+      "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" simple_test.py)",
+      "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" test_quick.py)",
+      "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" test_universal_crawler.py)",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" test_comprehensive.py)"
     ],
     "deny": []
   }

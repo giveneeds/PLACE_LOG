@@ -1,0 +1,38 @@
+{
+  "test_info": {
+    "test_date": "2025-07-30T20:43:58.687215",
+    "test_type": "comprehensive_universal_crawler",
+    "total_tests": 1,
+    "successful_tests": 0
+  },
+  "results": [
+    {
+      "keyword": "강남 맛집",
+      "shop_name": "스타벅스",
+      "region": "서울",
+      "category": "카페",
+      "success": false,
+      "rank": -1,
+      "elapsed_time": 8.588147401809692,
+      "detected_region": "강남",
+      "detected_category": "맛집",
+      "found_shops_count": 0,
+      "message": "CAPTCHA detected - IP rotation needed"
+    }
+  ],
+  "regional_performance": {
+    "서울": {
+      "total": 1,
+      "success": 0
+    }
+  },
+  "category_performance": {
+    "카페": {
+      "total": 1,
+      "success": 0
+    }
+  },
+  "summary": {
+    "overall_success_rate": 0.0
+  }
+}
