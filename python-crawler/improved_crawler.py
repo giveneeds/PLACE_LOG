@@ -8,11 +8,11 @@ import os
 import logging
 from supabase import create_client, Client
 
-class NaverPlaceCrawler:
+class ImprovedNaverPlaceCrawler:
     """개선된 네이버 플레이스 크롤러 (실제 작동하는 버전)"""
     
     def __init__(self):
-        self.logger = logging.getLogger("NaverPlaceCrawler")
+        self.logger = logging.getLogger("ImprovedNaverPlaceCrawler")
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
             "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -283,7 +283,7 @@ class NaverPlaceCrawler:
 
 def main():
     """메인 실행 함수"""
-    crawler = NaverPlaceCrawler()
+    crawler = ImprovedNaverPlaceCrawler()
     
     # 환경변수로 모드 결정
     mode = os.getenv('CRAWLER_MODE', 'tracked')  # 'tracked' or 'test'
