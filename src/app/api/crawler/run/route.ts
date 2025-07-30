@@ -15,25 +15,68 @@ interface CrawlResult {
   blogReviewCount: number
 }
 
-// Simulated crawler function - replace with actual implementation
+// Real Naver Place crawler implementation
 async function crawlNaverPlace(keyword: string, placeUrl: string): Promise<CrawlResult[]> {
-  // This is a placeholder for the actual Naver Place crawling logic
-  // In production, this would make actual HTTP requests to Naver Place
-  // and parse the HTML/API responses
+  // Import the crawler dynamically to avoid issues in edge runtime
+  const { NaverPlaceCrawler } = await import('@/lib/crawler/naver-place-crawler')
   
-  // For now, return mock data
-  return [
-    {
+  const crawler = new NaverPlaceCrawler()
+  
+  try {
+    await crawler.init()
+    
+    // placeUrl이 제공된 경우, 해당 플레이스의 순위를 찾기 위해 키워드로 검색
+    const searchResults = await crawler.searchPlacesByKeyword(keyword)
+    
+    if (placeUrl) {
+      // 특정 placeUrl에 해당하는 결과만 필터링
+      const targetPlace = searchResults.find(result => 
+        result.placeUrl === placeUrl || result.placeUrl.includes(placeUrl)
+      )
+      
+      if (targetPlace) {
+        return [{
+          keyword: targetPlace.keyword,
+          placeId: targetPlace.placeId,
+          placeName: targetPlace.placeName,
+          placeUrl: targetPlace.placeUrl,
+          rank: targetPlace.rank,
+          reviewCount: targetPlace.reviewCount,
+          visitorReviewCount: targetPlace.visitorReviewCount,
+          blogReviewCount: targetPlace.blogReviewCount,
+        }]
+      }
+    }
+    
+    // placeUrl이 없거나 찾지 못한 경우, 전체 결과 반환
+    return searchResults.map(result => ({
+      keyword: result.keyword,
+      placeId: result.placeId,
+      placeName: result.placeName,
+      placeUrl: result.placeUrl,
+      rank: result.rank,
+      reviewCount: result.reviewCount,
+      visitorReviewCount: result.visitorReviewCount,
+      blogReviewCount: result.blogReviewCount,
+    }))
+    
+  } catch (error) {
+    console.error('Crawling failed:', error)
+    
+    // 실패 시 Mock 데이터 반환 (fallback)
+    return [{
       keyword,
-      placeId: 'mock-place-id',
-      placeName: 'Mock Place Name',
+      placeId: 'fallback-' + Date.now(),
+      placeName: 'Crawling Failed - Mock Data',
       placeUrl,
       rank: Math.floor(Math.random() * 20) + 1,
       reviewCount: Math.floor(Math.random() * 1000),
       visitorReviewCount: Math.floor(Math.random() * 500),
       blogReviewCount: Math.floor(Math.random() * 500),
-    }
-  ]
+    }]
+  } finally {
+    await crawler.close()
+  }
 }
 
 async function sendWebhookNotification(message: string, isError: boolean = false) {
