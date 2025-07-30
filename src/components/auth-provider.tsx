@@ -25,10 +25,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateUserWithRole = async (authUser: User | null) => {
     if (authUser) {
-      const role = await getUserRole(authUser.id)
-      const userWithRole: UserWithRole = { ...authUser, role: role || undefined }
-      setUser(userWithRole)
-      setUserRole(role)
+      try {
+        console.log('Updating user with role for:', authUser.id)
+        const role = await getUserRole(authUser.id)
+        const userWithRole: UserWithRole = { ...authUser, role: role || 'user' }
+        setUser(userWithRole)
+        setUserRole(role || 'user')
+        console.log('User updated with role:', role)
+      } catch (error) {
+        console.error('Error updating user with role:', error)
+        // Set user without role in case of error
+        const userWithRole: UserWithRole = { ...authUser, role: 'user' }
+        setUser(userWithRole)
+        setUserRole('user')
+      }
     } else {
       setUser(null)
       setUserRole(null)
@@ -37,15 +47,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      await updateUserWithRole(user)
-      setLoading(false)
+      try {
+        console.log('Getting initial user...')
+        const { data: { user }, error } = await supabase.auth.getUser()
+        
+        if (error) {
+          console.error('Error getting user:', error)
+        } else {
+          console.log('Initial user:', user?.id || 'No user')
+        }
+        
+        await updateUserWithRole(user)
+      } catch (error) {
+        console.error('Unexpected error getting user:', error)
+      } finally {
+        setLoading(false)
+      }
     }
 
     getUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id || 'No user')
       await updateUserWithRole(session?.user ?? null)
+      if (event === 'SIGNED_OUT') {
+        setLoading(false)
+      }
     })
 
     return () => subscription.unsubscribe()
