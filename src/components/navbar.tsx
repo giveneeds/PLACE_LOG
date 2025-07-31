@@ -7,7 +7,7 @@ import { useAuth } from '@/components/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { canAccessAdminFeatures } from '@/lib/auth/rbac'
-import { BarChart3, LogOut, User, Settings } from 'lucide-react'
+import { BarChart3, LogOut, User, Settings, BookOpen } from 'lucide-react'
 
 export function Navbar() {
   const { user, userRole } = useAuth()
@@ -36,11 +36,11 @@ export function Navbar() {
   }
 
   return (
-    <nav className="border-b bg-white">
+    <nav className="border-b border-border-primary bg-background-elevated">
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-            <BarChart3 className="w-6 h-6" />
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-text-primary">
+            <BarChart3 className="w-6 h-6 text-brand-primary" />
             Place Log Pro
           </Link>
           
@@ -50,6 +50,12 @@ export function Navbar() {
                 <Link href="/dashboard">
                   <Button variant="ghost">대시보드</Button>
                 </Link>
+                <Link href="/recipes">
+                  <Button variant="ghost">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    레시피
+                  </Button>
+                </Link>
                 {canAccessAdminFeatures(userRole) && (
                   <Link href="/admin">
                     <Button variant="ghost">
@@ -58,11 +64,11 @@ export function Navbar() {
                     </Button>
                   </Link>
                 )}
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-text-secondary">
                   <User className="w-4 h-4" />
                   {user.email}
                   {userRole && (
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                    <span className="text-xs bg-background-base text-text-muted px-2 py-1 rounded">
                       {userRole === 'admin' ? '관리자' : '사용자'}
                     </span>
                   )}

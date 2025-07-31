@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <Providers>
           <Navbar />
-          <main className="min-h-screen bg-gray-50">
+          <main className="min-h-screen bg-background-base">
             {children}
           </main>
           <Toaster />
