@@ -1,0 +1,207 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Spotify 기반 다크 테마 색상 */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    
+    --card: 0 0% 9.4%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 0 0% 12.2%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 141 69% 39%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 212 72% 59%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 0 0% 15.7%;
+    --muted-foreground: 0 0% 70.2%;
+    
+    --accent: 141 69% 39%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 25.1%;
+    --input: 0 0% 16.5%;
+    --ring: 141 69% 39%;
+    
+    --chart-1: 141 69% 39%;
+    --chart-2: 212 72% 59%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 84% 60.2%;
+    --chart-5: 0 0% 70.2%;
+    
+    --radius: 0.5rem;
+  }
+  
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-dark-base text-white font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* 스크롤바 스타일링 - Spotify 스타일 */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #121212;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #535353;
+    border-radius: 6px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b3b3b3;
+  }
+  
+  /* 포커스 스타일 */
+  :focus-visible {
+    outline: 2px solid #1db954;
+    outline-offset: 2px;
+  }
+  
+  /* 선택 텍스트 스타일 */
+  ::selection {
+    background: #1db954;
+    color: white;
+  }
+}
+
+@layer components {
+  /* 공통 애니메이션 클래스 */
+  .animate-hover {
+    @apply transition-all duration-normal hover:scale-[1.02];
+  }
+  
+  .animate-press {
+    @apply active:scale-[0.98] transition-transform duration-fast;
+  }
+  
+  /* 그라데이션 배경 */
+  .gradient-bg {
+    background: linear-gradient(135deg, #1db954 0%, #169c46 100%);
+  }
+  
+  /* 글래스모피즘 효과 */
+  .glass {
+    @apply bg-white/10 backdrop-blur-sm border border-white/20;
+  }
+  
+  /* 카드 호버 효과 */
+  .card-hover {
+    @apply transition-all duration-normal hover:bg-dark-surface hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  /* 텍스트 그라데이션 */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent;
+  }
+  
+  /* 로딩 스피너 */
+  .loading-spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+}
+
+@layer utilities {
+  /* 텍스트 크기 유틸리티 */
+  .text-display-large {
+    @apply text-5xl font-bold leading-tight;
+  }
+  
+  .text-display-medium {
+    @apply text-4xl font-bold leading-tight;
+  }
+  
+  .text-display-small {
+    @apply text-3xl font-bold leading-tight;
+  }
+  
+  .text-headline-large {
+    @apply text-2xl font-semibold;
+  }
+  
+  .text-headline-medium {
+    @apply text-xl font-semibold;
+  }
+  
+  .text-headline-small {
+    @apply text-lg font-semibold;
+  }
+  
+  .text-body-large {
+    @apply text-base;
+  }
+  
+  .text-body-medium {
+    @apply text-sm;
+  }
+  
+  .text-body-small {
+    @apply text-xs;
+  }
+  
+  /* 간격 유틸리티 */
+  .space-content {
+    @apply space-y-6;
+  }
+  
+  .space-section {
+    @apply space-y-8;
+  }
+  
+  .space-page {
+    @apply space-y-12;
+  }
+  
+  /* 컨테이너 유틸리티 */
+  .container-content {
+    @apply max-w-7xl mx-auto px-6;
+  }
+  
+  .container-narrow {
+    @apply max-w-4xl mx-auto px-6;
+  }
+  
+  /* 그리드 레이아웃 */
+  .grid-cards {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+  }
+  
+  .grid-content {
+    @apply grid grid-cols-1 lg:grid-cols-3 gap-8;
+  }
+  
+  /* 플렉스 유틸리티 */
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+  
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+  
+  .flex-start {
+    @apply flex items-center justify-start;
+  }
+}
