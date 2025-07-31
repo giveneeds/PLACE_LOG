@@ -7,7 +7,7 @@ import { useAuth } from '@/components/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { canAccessAdminFeatures } from '@/lib/auth/rbac'
-import { BarChart3, LogOut, User, Settings, BookOpen } from 'lucide-react'
+import { BarChart3, LogOut, User, Settings, BookOpen, TrendingUp } from 'lucide-react'
 
 export function Navbar() {
   const { user, userRole } = useAuth()
@@ -49,6 +49,12 @@ export function Navbar() {
               <>
                 <Link href="/dashboard">
                   <Button variant="ghost">대시보드</Button>
+                </Link>
+                <Link href="/tracking">
+                  <Button variant="ghost">
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    순위 추적
+                  </Button>
                 </Link>
                 <Link href="/recipes">
                   <Button variant="ghost">

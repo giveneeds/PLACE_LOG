@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FaCoins, FaEye, FaShoppingCart, FaFilter, FaSearch } from 'react-icons/fa';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { FaCoins, FaEye, FaShoppingCart, FaFilter, FaSearch, FaArrowLeft } from 'react-icons/fa';
+import Link from 'next/link';
 
 interface Recipe {
   id: string;
@@ -16,17 +18,26 @@ interface Recipe {
   created_at: string;
 }
 
-export default function RecipesPage() {
+function RecipesContent() {
+  const searchParams = useSearchParams();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // URL 파라미터에서 키워드와 플레이스 정보 가져오기
+  const urlKeyword = searchParams.get('keyword');
+  const urlPlace = searchParams.get('place');
 
   const categories = ['전체', '카페', '음식점', '병원', '미용실', '기타'];
 
   useEffect(() => {
+    // URL에 키워드가 있으면 검색어로 설정
+    if (urlKeyword) {
+      setSearchTerm(urlKeyword);
+    }
     fetchRecipes();
-  }, [selectedCategory]);
+  }, [selectedCategory, urlKeyword]);
 
   const fetchRecipes = async () => {
     try {
@@ -72,11 +83,31 @@ export default function RecipesPage() {
       {/* Header */}
       <div className="bg-background-elevated border-b border-border-primary">
         <div className="max-w-7xl mx-auto px-4 py-8">
+          {urlKeyword && (
+            <div className="flex items-center space-x-4 mb-4">
+              <Link href="/tracking">
+                <button className="flex items-center space-x-2 text-text-secondary hover:text-brand-primary transition-colors">
+                  <FaArrowLeft />
+                  <span>순위 추적으로 돌아가기</span>
+                </button>
+              </Link>
+            </div>
+          )}
           <h1 className="text-display-large text-text-primary mb-4">
-            마케팅 레시피 마켓플레이스
+            {urlKeyword ? (
+              <>
+                <span className="text-brand-primary">"{urlKeyword}"</span> 관련 마케팅 레시피
+              </>
+            ) : (
+              '마케팅 레시피 마켓플레이스'
+            )}
           </h1>
           <p className="text-text-secondary text-lg">
-            검증된 마케팅 전략과 실무 노하우를 크레딧으로 구매하세요
+            {urlKeyword ? (
+              <>해당 키워드와 관련된 검증된 마케팅 전략을 확인하세요</>
+            ) : (
+              <>검증된 마케팅 전략과 실무 노하우를 크레딧으로 구매하세요</>
+            )}
           </p>
         </div>
       </div>
@@ -135,11 +166,19 @@ export default function RecipesPage() {
                     <span className="bg-brand-primary/20 text-brand-primary px-2 py-1 rounded text-sm font-medium">
                       {recipe.category}
                     </span>
-                    {recipe.isPurchased && (
-                      <span className="bg-success/20 text-success px-2 py-1 rounded text-sm font-medium">
-                        구매완료
-                      </span>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {recipe.isPurchased ? (
+                        <span className="bg-success/20 text-success px-2 py-1 rounded text-sm font-medium flex items-center space-x-1">
+                          <FaEye className="text-xs" />
+                          <span>구매완료</span>
+                        </span>
+                      ) : (
+                        <span className="bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded text-sm font-medium flex items-center space-x-1">
+                          <FaCoins className="text-xs" />
+                          <span>프리미엄</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <h3 className="text-text-primary font-semibold text-lg mb-2 line-clamp-2">
                     {recipe.title}
@@ -147,6 +186,12 @@ export default function RecipesPage() {
                   <p className="text-text-secondary text-sm line-clamp-3">
                     {recipe.summary}
                   </p>
+                  {!recipe.isPurchased && (
+                    <div className="mt-3 p-2 bg-brand-primary/10 border border-brand-primary/20 rounded text-xs">
+                      <p className="text-brand-primary font-medium">💡 이 레시피로 얻을 수 있는 것:</p>
+                      <p className="text-text-secondary mt-1">검증된 상위 노출 전략 • 단계별 실행 가이드 • 실제 성과 데이터</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Tags */}
@@ -193,15 +238,77 @@ export default function RecipesPage() {
                     <FaCoins />
                     <span>{recipe.price_credits} 크레딧</span>
                   </div>
-                  <button className="text-text-secondary hover:text-brand-primary text-sm font-medium">
-                    자세히 보기 →
-                  </button>
+                  {recipe.isPurchased ? (
+                    <button className="text-success hover:text-success/80 text-sm font-medium">
+                      내용 보기 →
+                    </button>
+                  ) : (
+                    <button className="text-brand-primary hover:text-brand-primaryLight text-sm font-medium">
+                      미리보기 →
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
+        
+        {/* Conversion CTA Section */}
+        {filteredRecipes.length > 0 && (
+          <div className="mt-12 bg-gradient-to-r from-brand-primary/10 to-purple-500/10 border border-brand-primary/20 rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-text-primary mb-4">
+              🚀 성공하는 플레이스들의 비밀을 알아보세요
+            </h2>
+            <p className="text-text-secondary mb-6 max-w-2xl mx-auto">
+              실제로 상위 노출을 달성한 플레이스들의 검증된 마케팅 전략을 확인하고, 
+              당신의 비즈니스에도 동일한 성과를 만들어보세요.
+            </p>
+            
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-background-elevated border border-border-primary rounded-lg p-4">
+                <div className="text-2xl font-bold text-brand-primary mb-2">95%</div>
+                <div className="text-sm text-text-secondary">평균 순위 상승률</div>
+              </div>
+              <div className="bg-background-elevated border border-border-primary rounded-lg p-4">
+                <div className="text-2xl font-bold text-brand-primary mb-2">30일</div>
+                <div className="text-sm text-text-secondary">평균 효과 발현 기간</div>
+              </div>
+              <div className="bg-background-elevated border border-border-primary rounded-lg p-4">
+                <div className="text-2xl font-bold text-brand-primary mb-2">{filteredRecipes.filter(r => !r.isPurchased).length}+</div>
+                <div className="text-sm text-text-secondary">검증된 성공 레시피</div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button
+                onClick={() => window.location.href = '/dashboard'}
+                className="bg-brand-primary hover:bg-brand-primaryLight text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"
+              >
+                <FaCoins />
+                <span>크레딧 충전하고 시작하기</span>
+              </button>
+              <button
+                onClick={() => window.location.href = '/tracking'}
+                className="bg-background-base border border-border-primary text-text-secondary hover:text-text-primary px-8 py-3 rounded-lg font-medium transition-colors"
+              >
+                순위 추적부터 시작하기
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+export default function RecipesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background-base flex items-center justify-center">
+        <div className="text-text-primary">로딩 중...</div>
+      </div>
+    }>
+      <RecipesContent />
+    </Suspense>
   );
 }

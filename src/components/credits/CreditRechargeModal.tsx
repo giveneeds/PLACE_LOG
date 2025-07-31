@@ -96,20 +96,20 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
                       value={pkg.credits}
                       checked={selectedPackage === pkg.credits}
                       onChange={(e) => setSelectedPackage(Number(e.target.value))}
-                      className="w-4 h-4 text-brand-primary"
+                      className="w-4 h-4 text-brand-primary bg-white border-gray-300 focus:ring-brand-primary"
                     />
                     <div>
-                      <div className="font-semibold text-text-primary">
+                      <div className="font-semibold text-white">
                         {pkg.credits} 크레딧
                       </div>
                       {pkg.discount && (
-                        <div className="text-sm text-success">
+                        <div className="text-sm text-green-400">
                           {pkg.discount}
                         </div>
                       )}
                     </div>
                   </div>
-                  <div className="text-lg font-bold text-text-primary">
+                  <div className="text-lg font-bold text-white">
                     {pkg.price.toLocaleString()}원
                   </div>
                 </label>
@@ -117,7 +117,7 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-text-secondary mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 입금자명
               </label>
               <input
@@ -125,14 +125,14 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
                 value={depositorName}
                 onChange={(e) => setDepositorName(e.target.value)}
                 placeholder="실제 입금하실 분의 성함"
-                className="w-full px-4 py-2 border border-border-primary rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-background-base text-text-primary placeholder-text-muted"
+                className="w-full px-4 py-2 border border-border-primary rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white text-black placeholder-gray-500"
               />
             </div>
 
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full py-3 bg-brand-primary text-text-primary rounded-lg font-medium hover:bg-brand-primaryLight transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primaryLight transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? '처리중...' : '무통장 입금 요청'}
             </button>
@@ -140,22 +140,22 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
         ) : (
           <div className="space-y-4">
             <div className="bg-brand-primary/10 border border-brand-primary/20 p-4 rounded-lg">
-              <h3 className="font-semibold text-lg mb-3 text-text-primary">입금 정보</h3>
+              <h3 className="font-semibold text-lg mb-3 text-white">입금 정보</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-text-secondary">은행명</span>
-                  <span className="font-medium text-text-primary">국민은행</span>
+                  <span className="text-gray-300">은행명</span>
+                  <span className="font-medium text-white">국민은행</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-secondary">계좌번호</span>
-                  <span className="font-medium text-text-primary">564701-01-540185</span>
+                  <span className="text-gray-300">계좌번호</span>
+                  <span className="font-medium text-white">564701-01-540185</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-secondary">예금주</span>
-                  <span className="font-medium text-text-primary">박성빈(기브니즈)</span>
+                  <span className="text-gray-300">예금주</span>
+                  <span className="font-medium text-white">박성빈(기브니즈)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-secondary">입금액</span>
+                  <span className="text-gray-300">입금액</span>
                   <span className="font-bold text-lg text-brand-primary">
                     {PACKAGES.find(p => p.credits === selectedPackage)?.price.toLocaleString()}원
                   </span>
@@ -163,9 +163,9 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
               </div>
             </div>
 
-            <div className="bg-warning/10 border border-warning/20 p-4 rounded-lg">
-              <p className="text-sm text-warning">
-                ⚠️ 반드시 등록하신 입금자명(<strong className="text-text-primary">{depositorName}</strong>)으로 입금해주세요.
+            <div className="bg-yellow-900/20 border border-yellow-600/30 p-4 rounded-lg">
+              <p className="text-sm text-yellow-300">
+                ⚠️ 반드시 등록하신 입금자명(<strong className="text-white">{depositorName}</strong>)으로 입금해주세요.
                 입금 확인 후 크레딧이 자동으로 충전됩니다.
               </p>
             </div>
@@ -175,7 +175,7 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
                 onClose();
                 onSuccess?.();
               }}
-              className="w-full py-3 bg-background-base border border-border-primary text-text-primary rounded-lg font-medium hover:bg-background-elevated transition-colors"
+              className="w-full py-3 bg-gray-700 border border-gray-600 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
             >
               확인
             </button>
