@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient();
-  const recipeId = params.id;
+  const { id: recipeId } = await params;
   
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -29,7 +29,7 @@ export async function POST(
   // 레시피 정보 조회
   const { data: recipe, error: recipeError } = await supabase
     .from('recipes')
-    .select('price_credits, title')
+    .select('price_credits, title, purchase_count')
     .eq('id', recipeId)
     .eq('is_active', true)
     .single();
