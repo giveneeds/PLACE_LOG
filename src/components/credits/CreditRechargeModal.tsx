@@ -43,7 +43,7 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
         body: JSON.stringify({
           packageType: selectedPackage.toString(),
           depositorName,
-          bankName: '신한은행'
+          bankName: '국민은행'
         })
       });
 
@@ -62,16 +62,16 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-dark-elevated2 rounded-xl max-w-lg w-full p-6 relative border border-gray-800 shadow-overlay">
+      <div className="bg-background-elevated rounded-xl max-w-lg w-full p-6 relative border border-border-primary shadow-xl">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-text-secondary hover:text-text-primary transition-colors"
         >
           <FaTimes className="w-5 h-5" />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
-          <FaCoins className="text-primary" />
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-text-primary">
+          <FaCoins className="text-brand-primary" />
           크레딧 충전
         </h2>
 
@@ -84,8 +84,8 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
                   className={`
                     flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all
                     ${selectedPackage === pkg.credits 
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' 
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      ? 'border-brand-primary bg-brand-primary/10' 
+                      : 'border-border-primary hover:border-brand-primary/50'
                     }
                   `}
                 >
@@ -96,20 +96,20 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
                       value={pkg.credits}
                       checked={selectedPackage === pkg.credits}
                       onChange={(e) => setSelectedPackage(Number(e.target.value))}
-                      className="w-4 h-4 text-blue-600"
+                      className="w-4 h-4 text-brand-primary"
                     />
                     <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">
+                      <div className="font-semibold text-text-primary">
                         {pkg.credits} 크레딧
                       </div>
                       {pkg.discount && (
-                        <div className="text-sm text-green-600 dark:text-green-400">
+                        <div className="text-sm text-success">
                           {pkg.discount}
                         </div>
                       )}
                     </div>
                   </div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="text-lg font-bold text-text-primary">
                     {pkg.price.toLocaleString()}원
                   </div>
                 </label>
@@ -117,7 +117,7 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 입금자명
               </label>
               <input
@@ -125,47 +125,47 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
                 value={depositorName}
                 onChange={(e) => setDepositorName(e.target.value)}
                 placeholder="실제 입금하실 분의 성함"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2 border border-border-primary rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-background-base text-text-primary placeholder-text-muted"
               />
             </div>
 
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-brand-primary text-text-primary rounded-lg font-medium hover:bg-brand-primaryLight transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? '처리중...' : '무통장 입금 요청'}
             </button>
           </>
         ) : (
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-              <h3 className="font-semibold text-lg mb-3">입금 정보</h3>
+            <div className="bg-brand-primary/10 border border-brand-primary/20 p-4 rounded-lg">
+              <h3 className="font-semibold text-lg mb-3 text-text-primary">입금 정보</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">은행명</span>
-                  <span className="font-medium">신한은행</span>
+                  <span className="text-text-secondary">은행명</span>
+                  <span className="font-medium text-text-primary">국민은행</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">계좌번호</span>
-                  <span className="font-medium">110-123-456789</span>
+                  <span className="text-text-secondary">계좌번호</span>
+                  <span className="font-medium text-text-primary">564701-01-540185</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">예금주</span>
-                  <span className="font-medium">플레이스로그</span>
+                  <span className="text-text-secondary">예금주</span>
+                  <span className="font-medium text-text-primary">박성빈(기브니즈)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">입금액</span>
-                  <span className="font-bold text-lg text-blue-600">
+                  <span className="text-text-secondary">입금액</span>
+                  <span className="font-bold text-lg text-brand-primary">
                     {PACKAGES.find(p => p.credits === selectedPackage)?.price.toLocaleString()}원
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                ⚠️ 반드시 등록하신 입금자명(<strong>{depositorName}</strong>)으로 입금해주세요.
+            <div className="bg-warning/10 border border-warning/20 p-4 rounded-lg">
+              <p className="text-sm text-warning">
+                ⚠️ 반드시 등록하신 입금자명(<strong className="text-text-primary">{depositorName}</strong>)으로 입금해주세요.
                 입금 확인 후 크레딧이 자동으로 충전됩니다.
               </p>
             </div>
@@ -175,7 +175,7 @@ export function CreditRechargeModal({ isOpen, onClose, onSuccess }: CreditRechar
                 onClose();
                 onSuccess?.();
               }}
-              className="w-full py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+              className="w-full py-3 bg-background-base border border-border-primary text-text-primary rounded-lg font-medium hover:bg-background-elevated transition-colors"
             >
               확인
             </button>

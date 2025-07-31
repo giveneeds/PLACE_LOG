@@ -124,18 +124,20 @@ export default function AdminPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>마케팅 메모</CardTitle>
+              <CardTitle>레시피 관리</CardTitle>
               <CardDescription>
-                마케팅 메모 작성 및 관리
+                마케팅 레시피 등록, 수정, 삭제
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
+                <Link href="/admin/recipes">
+                  <Button className="w-full" variant="outline">
+                    레시피 관리
+                  </Button>
+                </Link>
                 <Button className="w-full" variant="outline">
-                  메모 작성
-                </Button>
-                <Button className="w-full" variant="outline">
-                  메모 관리
+                  레시피 통계
                 </Button>
               </div>
             </CardContent>
@@ -143,16 +145,18 @@ export default function AdminPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>크레딧 관리</CardTitle>
+              <CardTitle>결제 관리</CardTitle>
               <CardDescription>
-                사용자 크레딧 조정 및 거래 내역
+                무통장 입금 확인 및 크레딧 지급
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Button className="w-full" variant="outline">
-                  크레딧 조정
-                </Button>
+                <Link href="/admin/payments">
+                  <Button className="w-full" variant="outline">
+                    결제 승인
+                  </Button>
+                </Link>
                 <Button className="w-full" variant="outline">
                   거래 내역
                 </Button>

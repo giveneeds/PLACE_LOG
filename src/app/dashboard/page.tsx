@@ -256,17 +256,24 @@ export default function DashboardPage() {
                     <Gift className="w-6 h-6 text-info" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white mb-1">크레딧 충전</h3>
-                    <p className="text-sm text-gray-400">레시피 열람용 크레딧</p>
+                    <h3 className="font-semibold text-white mb-1">결제 관리</h3>
+                    <p className="text-sm text-gray-400">크레딧 충전 및 내역 확인</p>
                   </div>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start mt-4"
-                  onClick={() => setShowRechargeModal(true)}
-                >
-                  충전하기
-                </Button>
+                <div className="mt-4 space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start"
+                    onClick={() => setShowRechargeModal(true)}
+                  >
+                    크레딧 충전하기
+                  </Button>
+                  <Link href="/dashboard/payments" className="block">
+                    <Button variant="ghost" className="w-full justify-start">
+                      결제 내역 보기
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </div>

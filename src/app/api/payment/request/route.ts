@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ 
     paymentRequest,
     bankInfo: {
-      bankName: '신한은행',
-      accountNumber: '110-123-456789',
-      accountHolder: '플레이스로그',
+      bankName: '국민은행',
+      accountNumber: '564701-01-540185',
+      accountHolder: '박성빈(기브니즈)',
       amount: selectedPackage.price
     }
   });
