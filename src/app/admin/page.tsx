@@ -180,9 +180,11 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Button className="w-full" variant="outline">
-                  데이터 현황
-                </Button>
+                <Link href="/admin/data">
+                  <Button className="w-full" variant="outline">
+                    데이터 현황
+                  </Button>
+                </Link>
                 <Button className="w-full" variant="outline">
                   크롤링 설정
                 </Button>
@@ -241,12 +243,16 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Button className="w-full" variant="outline">
-                  시스템 상태
-                </Button>
-                <Button className="w-full" variant="outline">
-                  로그 관리
-                </Button>
+                <Link href="/admin/system">
+                  <Button className="w-full" variant="outline">
+                    시스템 상태
+                  </Button>
+                </Link>
+                <Link href="/admin/system">
+                  <Button className="w-full" variant="outline">
+                    로그 관리
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -260,12 +266,16 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Button className="w-full" variant="outline">
-                  사용량 통계
-                </Button>
-                <Button className="w-full" variant="outline">
-                  수익 분석
-                </Button>
+                <Link href="/admin/analytics">
+                  <Button className="w-full" variant="outline">
+                    사용량 통계
+                  </Button>
+                </Link>
+                <Link href="/admin/analytics">
+                  <Button className="w-full" variant="outline">
+                    수익 분석
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
