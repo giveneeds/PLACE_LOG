@@ -39,7 +39,7 @@ export function Navbar() {
     <nav className="border-b border-border-primary bg-background-elevated">
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-text-primary">
+          <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-xl font-bold text-text-primary">
             <BarChart3 className="w-6 h-6 text-brand-primary" />
             Place Log Pro
           </Link>
