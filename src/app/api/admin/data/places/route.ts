@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         search_keyword,
         is_active,
         created_at,
-        profiles!tracked_places_user_id_fkey(email)
+        user_id
       `)
       .order('created_at', { ascending: false })
 
@@ -42,6 +42,13 @@ export async function GET(request: NextRequest) {
     // 각 플레이스의 최신 순위 및 크롤링 정보 조회
     const placesWithStats = await Promise.all(
       (places || []).map(async (place) => {
+        // 사용자 이메일 조회
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', place.user_id)
+          .single()
+
         // 최신 순위 조회
         const { data: latestRanking } = await supabase
           .from('rankings')
@@ -62,7 +69,7 @@ export async function GET(request: NextRequest) {
           place_name: place.place_name,
           search_keyword: place.search_keyword,
           is_active: place.is_active,
-          user_email: place.profiles?.email || 'Unknown',
+          user_email: userProfile?.email || 'Unknown',
           latest_rank: latestRanking?.rank || null,
           latest_crawl: latestRanking?.checked_at || null,
           total_rankings: totalRankings || 0,
