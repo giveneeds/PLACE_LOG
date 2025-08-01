@@ -420,8 +420,8 @@ export default function DashboardPage() {
                               key={place.id}
                               className="flex items-center justify-between p-4 bg-dark-elevated2 rounded-lg hover:bg-dark-surface transition-colors border border-gray-800"
                             >
-                              <div className="flex-1">
-                                <h3 className="font-medium text-white">{place.place_name}</h3>
+                              <Link href={`/dashboard/place/${place.id}`} className="flex-1">
+                                <h3 className="font-medium text-white hover:text-primary transition-colors">{place.place_name}</h3>
                                 <p className="text-sm text-gray-500 truncate max-w-md">
                                   {place.place_url}
                                 </p>
@@ -439,8 +439,17 @@ export default function DashboardPage() {
                                     기간: {place.period_start || '시작일 미정'} ~ {place.period_end || '종료일 미정'}
                                   </p>
                                 )}
-                              </div>
+                              </Link>
                               <div className="flex items-center gap-4">
+                                <Link href={`/dashboard/place/${place.id}`}>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="text-gray-400 hover:text-white"
+                                  >
+                                    <BarChart className="w-4 h-4" />
+                                  </Button>
+                                </Link>
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
