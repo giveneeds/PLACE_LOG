@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       email: user.email,
       role: user.role,
       created_at: user.created_at,
-      credit_balance: user.credits?.balance || 0,
+      credit_balance: user.credits?.[0]?.balance || 0,
       tracked_places_count: user.tracked_places?.length || 0,
     })) || []
 
