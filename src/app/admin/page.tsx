@@ -1,12 +1,76 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { AdminOnly } from '@/components/auth/role-guard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Users, Database, CreditCard, FileText } from 'lucide-react'
 import Link from 'next/link'
+import { useToast } from '@/hooks/use-toast'
+
+interface AdminStats {
+  totalUsers: number
+  totalPlaces: number
+  totalCredits: number
+  totalMemoViews: number
+  userGrowth: string
+  placeGrowth: string
+  creditGrowth: string
+  memoGrowth: string
+}
 
 export default function AdminPage() {
+  const { toast } = useToast()
+  const [stats, setStats] = useState<AdminStats | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/admin/stats')
+      if (!response.ok) {
+        throw new Error('Failed to fetch stats')
+      }
+      const data = await response.json()
+      setStats(data.stats)
+    } catch (error: any) {
+      toast({
+        title: '통계 로드 실패',
+        description: error.message || '통계 데이터를 불러오는 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <AdminOnly fallback={
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">접근 권한이 없습니다</h2>
+                <p className="text-gray-600 mb-4">관리자만 접근할 수 있는 페이지입니다.</p>
+                <Link href="/dashboard">
+                  <Button>대시보드로 돌아가기</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      }>
+        <div className="container mx-auto p-6">
+          <div className="text-center">로딩 중...</div>
+        </div>
+      </AdminOnly>
+    )
+  }
+
   return (
     <AdminOnly fallback={
       <div className="container mx-auto p-6">
@@ -36,9 +100,9 @@ export default function AdminPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1,234</div>
+              <div className="text-2xl font-bold">{stats?.totalUsers?.toLocaleString() || '0'}</div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                {stats?.userGrowth || 'Loading...'}
               </p>
             </CardContent>
           </Card>
@@ -49,9 +113,9 @@ export default function AdminPage() {
               <Database className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2,350</div>
+              <div className="text-2xl font-bold">{stats?.totalPlaces?.toLocaleString() || '0'}</div>
               <p className="text-xs text-muted-foreground">
-                +180.1% from last month
+                {stats?.placeGrowth || 'Loading...'}
               </p>
             </CardContent>
           </Card>
@@ -62,9 +126,9 @@ export default function AdminPage() {
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12,234</div>
+              <div className="text-2xl font-bold">{stats?.totalCredits?.toLocaleString() || '0'}</div>
               <p className="text-xs text-muted-foreground">
-                +19% from last month
+                {stats?.creditGrowth || 'Loading...'}
               </p>
             </CardContent>
           </Card>
@@ -75,9 +139,9 @@ export default function AdminPage() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">573</div>
+              <div className="text-2xl font-bold">{stats?.totalMemoViews?.toLocaleString() || '0'}</div>
               <p className="text-xs text-muted-foreground">
-                +201 since last hour
+                {stats?.memoGrowth || 'Loading...'}
               </p>
             </CardContent>
           </Card>
@@ -93,12 +157,16 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Button className="w-full" variant="outline">
-                  사용자 목록 보기
-                </Button>
-                <Button className="w-full" variant="outline">
-                  권한 관리
-                </Button>
+                <Link href="/admin/users">
+                  <Button className="w-full" variant="outline">
+                    사용자 목록 보기
+                  </Button>
+                </Link>
+                <Link href="/admin/users">
+                  <Button className="w-full" variant="outline">
+                    권한 관리
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
