@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, TrendingUp, TrendingDown, Minus, BarChart, Search, BookOpen, Gift, RefreshCw } from 'lucide-react'
+import { Plus, TrendingUp, TrendingDown, Minus, BarChart, Search, BookOpen, Gift, RefreshCw, BarChart3, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
 import { useToast } from '@/hooks/use-toast'
@@ -13,6 +13,8 @@ import { AuthenticatedOnly, AdminOnly } from '@/components/auth/role-guard'
 import { useRealtimeUpdates } from '@/hooks/use-realtime'
 import { CreditBalance } from '@/components/credits/CreditBalance'
 import { CreditRechargeModal } from '@/components/credits/CreditRechargeModal'
+import { RankingCompareDialog } from '@/components/dashboard/RankingCompareDialog'
+import { BrandingReportDialog } from '@/components/dashboard/BrandingReportDialog'
 
 interface TrackedPlace {
   id: string
@@ -58,6 +60,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [showRechargeModal, setShowRechargeModal] = useState(false)
   const [refreshingPlaces, setRefreshingPlaces] = useState<Set<string>>(new Set())
+  const [showCompareDialog, setShowCompareDialog] = useState<string | null>(null)
+  const [showReportDialog, setShowReportDialog] = useState<string | null>(null)
 
   const fetchKeywords = useCallback(async () => {
     try {
@@ -440,12 +444,13 @@ export default function DashboardPage() {
                                   </p>
                                 )}
                               </Link>
-                              <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
                                 <Link href={`/dashboard/place/${place.id}`}>
                                   <Button 
                                     variant="ghost" 
                                     size="sm" 
                                     className="text-gray-400 hover:text-white"
+                                    title="상세 차트 보기"
                                   >
                                     <BarChart className="w-4 h-4" />
                                   </Button>
@@ -454,18 +459,30 @@ export default function DashboardPage() {
                                   variant="ghost" 
                                   size="sm" 
                                   className="text-gray-400 hover:text-white"
+                                  onClick={() => setShowCompareDialog(keyword.keyword)}
+                                  title="순위 비교분석"
+                                >
+                                  <BarChart3 className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-gray-400 hover:text-white"
+                                  onClick={() => setShowReportDialog(place.id)}
+                                  title="브랜딩 보고서"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-gray-400 hover:text-white"
                                   onClick={() => handleRefreshRank(place.id)}
                                   disabled={refreshingPlaces.has(place.id)}
+                                  title="순위 재검색"
                                 >
-                                  <RefreshCw className={`w-4 h-4 mr-2 ${refreshingPlaces.has(place.id) ? 'animate-spin' : ''}`} />
-                                  {refreshingPlaces.has(place.id) ? '검색 중...' : '순위 재검색'}
+                                  <RefreshCw className={`w-4 h-4 ${refreshingPlaces.has(place.id) ? 'animate-spin' : ''}`} />
                                 </Button>
-                                <Link href={`/dashboard/${place.id}`}>
-                                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                                    <BarChart className="w-4 h-4 mr-2" />
-                                    상세 분석
-                                  </Button>
-                                </Link>
                                 <div className="text-right">
                                   <div className="flex items-center gap-2">
                                     <span className="text-lg font-bold text-white">
@@ -507,6 +524,24 @@ export default function DashboardPage() {
             })
           }}
         />
+
+        {/* Ranking Compare Dialog */}
+        {showCompareDialog && (
+          <RankingCompareDialog 
+            open={!!showCompareDialog}
+            onOpenChange={(open) => !open && setShowCompareDialog(null)}
+            keyword={showCompareDialog}
+          />
+        )}
+
+        {/* Branding Report Dialog */}
+        {showReportDialog && (
+          <BrandingReportDialog 
+            open={!!showReportDialog}
+            onOpenChange={(open) => !open && setShowReportDialog(null)}
+            placeId={showReportDialog}
+          />
+        )}
       </div>
     </AuthenticatedOnly>
   )
