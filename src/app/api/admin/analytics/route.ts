@@ -100,26 +100,35 @@ export async function GET(request: NextRequest) {
     // 인기 키워드
     const { data: keywordsData } = await supabase
       .from('tracked_places')
-      .select(`
-        search_keyword,
-        rankings!inner(rank)
-      `)
-      .gte('rankings.checked_at', startDate.toISOString())
+      .select('id, search_keyword')
 
     const keywordStats = new Map()
-    keywordsData?.forEach(place => {
-      const keyword = place.search_keyword
-      if (!keywordStats.has(keyword)) {
-        keywordStats.set(keyword, { count: 0, totalRank: 0, validRanks: 0 })
+    
+    if (keywordsData) {
+      for (const place of keywordsData) {
+        const keyword = place.search_keyword
+        if (!keywordStats.has(keyword)) {
+          keywordStats.set(keyword, { count: 0, totalRank: 0, validRanks: 0 })
+        }
+        
+        // Get rankings for this place
+        const { data: rankingsData } = await supabase
+          .from('rankings')
+          .select('rank')
+          .eq('place_id', place.id)
+          .not('rank', 'is', null)
+          .gte('checked_at', startDate.toISOString())
+        
+        const stats = keywordStats.get(keyword)
+        stats.count++
+        
+        if (rankingsData && rankingsData.length > 0) {
+          const avgRank = rankingsData.reduce((sum, r) => sum + r.rank, 0) / rankingsData.length
+          stats.totalRank += avgRank
+          stats.validRanks++
+        }
       }
-      
-      const stats = keywordStats.get(keyword)
-      stats.count++
-      if (place.rankings && place.rankings.rank) {
-        stats.totalRank += place.rankings.rank
-        stats.validRanks++
-      }
-    })
+    }
 
     const topKeywords = Array.from(keywordStats.entries())
       .map(([keyword, stats]) => ({
