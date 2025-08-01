@@ -77,9 +77,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   // If user is authenticated but trying to access login/signup, redirect to dashboard
-  if (user && (pathname === '/login' || pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+  // 임시로 비활성화 - 무한 로딩 문제 해결을 위해
+  // if (user && (pathname === '/login' || pathname === '/signup')) {
+  //   return NextResponse.redirect(new URL('/dashboard', request.url))
+  // }
 
   // Check admin routes
   if (isAdminRoute && user) {
