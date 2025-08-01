@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, TrendingUp, TrendingDown, Minus, BarChart, Search, BookOpen, Gift } from 'lucide-react'
+import { Plus, TrendingUp, TrendingDown, Minus, BarChart, Search, BookOpen, Gift, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
 import { useToast } from '@/hooks/use-toast'
@@ -57,6 +57,7 @@ export default function DashboardPage() {
   const [recentRecipes, setRecentRecipes] = useState<RecentRecipe[]>([])
   const [loading, setLoading] = useState(true)
   const [showRechargeModal, setShowRechargeModal] = useState(false)
+  const [refreshingPlaces, setRefreshingPlaces] = useState<Set<string>>(new Set())
 
   const fetchKeywords = useCallback(async () => {
     try {
@@ -137,6 +138,51 @@ export default function DashboardPage() {
         return <Minus className="w-4 h-4 text-gray-500" />
       default:
         return null
+    }
+  }
+
+  const handleRefreshRank = async (placeId: string) => {
+    // 이미 새로고침 중이면 무시
+    if (refreshingPlaces.has(placeId)) return
+
+    setRefreshingPlaces(prev => new Set(prev).add(placeId))
+
+    try {
+      const response = await fetch('/api/rankings/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ placeId }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh ranking')
+      }
+
+      const result = await response.json()
+      
+      toast({
+        title: '순위 재검색 완료',
+        description: result.result?.success 
+          ? `현재 순위: ${result.result.rank}위`
+          : '순위권 밖',
+      })
+
+      // 데이터 새로고침
+      await fetchKeywords()
+    } catch (error: any) {
+      toast({
+        title: '재검색 실패',
+        description: error.message || '순위 재검색 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      })
+    } finally {
+      setRefreshingPlaces(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(placeId)
+        return newSet
+      })
     }
   }
 
@@ -395,6 +441,16 @@ export default function DashboardPage() {
                                 )}
                               </div>
                               <div className="flex items-center gap-4">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-gray-400 hover:text-white"
+                                  onClick={() => handleRefreshRank(place.id)}
+                                  disabled={refreshingPlaces.has(place.id)}
+                                >
+                                  <RefreshCw className={`w-4 h-4 mr-2 ${refreshingPlaces.has(place.id) ? 'animate-spin' : ''}`} />
+                                  {refreshingPlaces.has(place.id) ? '검색 중...' : '순위 재검색'}
+                                </Button>
                                 <Link href={`/dashboard/${place.id}`}>
                                   <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                                     <BarChart className="w-4 h-4 mr-2" />

@@ -132,7 +132,7 @@ class NaverPlaceCrawler:
             rank = 0
             found_shops = []
             
-            for item in place_items[:50]:  # 상위 50개만 확인 (28등까지 충분히 포함)
+            for item in place_items[:300]:  # 상위 300개까지 확인
                 # 광고 확인
                 text = item.get_text()
                 if any(ad_word in text for ad_word in ["광고", "AD", "Sponsored"]):

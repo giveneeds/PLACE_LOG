@@ -95,9 +95,13 @@ export class NaverPlaceCrawler {
 
       const results: NaverPlaceResult[] = []
       let rank = 1
+      const maxResults = 300 // 최대 300위까지
 
       // 검색 결과 파싱
       $('.place_bluelink').each((index, element) => {
+        // 300위까지만 수집
+        if (rank > maxResults) return false
+
         try {
           const $element = $(element)
           const $parent = $element.closest('.item_info')

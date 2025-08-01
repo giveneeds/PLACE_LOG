@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { RankTrendChart } from '@/components/charts/rank-trend-chart'
 import { ReviewTrendChart } from '@/components/charts/review-trend-chart'
-import { ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/components/auth-provider'
 import { useToast } from '@/hooks/use-toast'
@@ -43,6 +43,7 @@ export default function PlaceAnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState('7d')
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -82,6 +83,48 @@ export default function PlaceAnalyticsPage() {
     if (!change) return '변동 없음'
     if (change > 0) return `${change}위 상승`
     return `${Math.abs(change)}위 하락`
+  }
+
+  const handleRefreshRank = async () => {
+    setRefreshing(true)
+
+    try {
+      const response = await fetch('/api/rankings/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ placeId }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh ranking')
+      }
+
+      const result = await response.json()
+      
+      toast({
+        title: '순위 재검색 완료',
+        description: result.result?.success 
+          ? `현재 순위: ${result.result.rank}위`
+          : '순위권 밖',
+      })
+
+      // 데이터 새로고침
+      const analyticsResponse = await fetch(`/api/analytics/overview?placeId=${placeId}&period=${period}`)
+      if (analyticsResponse.ok) {
+        const { data } = await analyticsResponse.json()
+        setAnalytics(data[0] || null)
+      }
+    } catch (error: any) {
+      toast({
+        title: '재검색 실패',
+        description: error.message || '순위 재검색 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      })
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   if (!user) {
@@ -147,16 +190,28 @@ export default function PlaceAnalyticsPage() {
           </div>
         </div>
         
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="기간 선택" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">최근 7일</SelectItem>
-            <SelectItem value="30d">최근 30일</SelectItem>
-            <SelectItem value="90d">최근 90일</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshRank}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? '검색 중...' : '순위 재검색'}
+          </Button>
+          
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="기간 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">최근 7일</SelectItem>
+              <SelectItem value="30d">최근 30일</SelectItem>
+              <SelectItem value="90d">최근 90일</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Statistics Cards */}

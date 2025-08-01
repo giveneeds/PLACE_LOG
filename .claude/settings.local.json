@@ -24,7 +24,9 @@
       "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" json_based_naver_crawler.py)",
       "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" test_json_parsing.py)",
       "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" test_simple_parsing.py)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(dir:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }
