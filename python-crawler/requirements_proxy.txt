@@ -1,0 +1,21 @@
+# 기본 웹 스크래핑 라이브러리
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# Supabase 클라이언트
+supabase==1.4.0
+
+# HTTP 클라이언트 관련
+urllib3==2.0.7
+certifi==2023.7.22
+
+# 데이터 처리
+python-dotenv==1.0.0
+
+# 프록시 및 네트워크 관련
+PySocks==1.7.1
+requests[socks]==2.31.0
+
+# 로깅 및 유틸리티
+python-dateutil==2.8.2

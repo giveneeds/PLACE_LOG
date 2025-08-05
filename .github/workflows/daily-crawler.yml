@@ -26,14 +26,34 @@ jobs:
         cd python-crawler
         pip install -r requirements.txt
         
-    - name: Run crawler
+    - name: Run crawler with Bright Data Proxy
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        # Bright Data Proxy Configuration
+        BRIGHT_DATA_ENDPOINT: ${{ secrets.BRIGHT_DATA_ENDPOINT }}
+        BRIGHT_DATA_USERNAME: ${{ secrets.BRIGHT_DATA_USERNAME }}
+        BRIGHT_DATA_PASSWORD: ${{ secrets.BRIGHT_DATA_PASSWORD }}
+        BRIGHT_DATA_SESSION_ID: ${{ secrets.BRIGHT_DATA_SESSION_ID }}
+        BRIGHT_DATA_COUNTRY: ${{ secrets.BRIGHT_DATA_COUNTRY }}
+        # Additional proxy endpoints (optional)
+        BRIGHT_DATA_ENDPOINT_1: ${{ secrets.BRIGHT_DATA_ENDPOINT_1 }}
+        BRIGHT_DATA_USERNAME_1: ${{ secrets.BRIGHT_DATA_USERNAME_1 }}
+        BRIGHT_DATA_PASSWORD_1: ${{ secrets.BRIGHT_DATA_PASSWORD_1 }}
+        BRIGHT_DATA_SESSION_ID_1: ${{ secrets.BRIGHT_DATA_SESSION_ID_1 }}
+        BRIGHT_DATA_COUNTRY_1: ${{ secrets.BRIGHT_DATA_COUNTRY_1 }}
+        BRIGHT_DATA_ENDPOINT_2: ${{ secrets.BRIGHT_DATA_ENDPOINT_2 }}
+        BRIGHT_DATA_USERNAME_2: ${{ secrets.BRIGHT_DATA_USERNAME_2 }}
+        BRIGHT_DATA_PASSWORD_2: ${{ secrets.BRIGHT_DATA_PASSWORD_2 }}
+        BRIGHT_DATA_SESSION_ID_2: ${{ secrets.BRIGHT_DATA_SESSION_ID_2 }}
+        BRIGHT_DATA_COUNTRY_2: ${{ secrets.BRIGHT_DATA_COUNTRY_2 }}
+        # Crawler Configuration
+        USE_BRIGHT_DATA_PROXY: true
         CRAWLER_MODE: tracked
+        DEBUG_MODE: false
       run: |
         cd python-crawler
-        python crawler.py
+        python enhanced_naver_crawler.py
         
     - name: Notify completion
       if: always()

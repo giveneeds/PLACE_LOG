@@ -8,6 +8,7 @@ import os
 import logging
 from supabase import create_client, Client
 from bright_data_proxy_manager import create_bright_data_proxy_manager, BrightDataProxyManager
+from proxy_monitor import get_proxy_monitor, log_proxy_request
 
 class EnhancedNaverPlaceCrawler:
     """Bright Data 프록시를 사용하는 향상된 네이버 플레이스 크롤러"""
@@ -43,6 +44,9 @@ class EnhancedNaverPlaceCrawler:
         else:
             self.supabase = None
             self.logger.warning("Supabase credentials not found")
+        
+        # 프록시 모니터 초기화
+        self.proxy_monitor = get_proxy_monitor()
 
     def build_url(self, keyword):
         """검색어를 기반으로 네이버 모바일 지도 검색 URL을 생성"""
