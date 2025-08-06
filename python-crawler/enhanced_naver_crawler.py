@@ -9,6 +9,7 @@ import logging
 from supabase import create_client, Client
 from bright_data_proxy_manager import create_bright_data_proxy_manager, BrightDataProxyManager
 from proxy_monitor import get_proxy_monitor, log_proxy_request
+from bright_data_api_config import setup_bright_data_from_api
 
 class EnhancedNaverPlaceCrawler:
     """Bright Data 프록시를 사용하는 향상된 네이버 플레이스 크롤러"""
@@ -18,13 +19,26 @@ class EnhancedNaverPlaceCrawler:
         logging.basicConfig(level=logging.INFO)
         
         # 프록시 설정
-        self.use_proxy = use_proxy and os.getenv('BRIGHT_DATA_ENDPOINT')
+        self.use_proxy = use_proxy and (os.getenv('BRIGHT_DATA_ENDPOINT') or os.getenv('BRIGHT_DATA_API_KEY'))
         self.proxy_manager = None
         
         if self.use_proxy:
             try:
-                self.proxy_manager = create_bright_data_proxy_manager()
-                self.logger.info("Proxy manager initialized successfully")
+                # API 키가 있으면 API를 통해 프록시 설정 가져오기
+                if os.getenv('BRIGHT_DATA_API_KEY'):
+                    self.logger.info("Fetching proxy configurations from Bright Data API...")
+                    proxy_configs = setup_bright_data_from_api()
+                    if proxy_configs:
+                        self.proxy_manager = BrightDataProxyManager(proxy_configs)
+                        self.logger.info(f"Proxy manager initialized with {len(proxy_configs)} proxies from API")
+                    else:
+                        # API 실패 시 환경변수에서 가져오기
+                        self.logger.warning("Failed to get proxies from API, falling back to environment variables")
+                        self.proxy_manager = create_bright_data_proxy_manager()
+                else:
+                    # API 키가 없으면 환경변수에서 직접 가져오기
+                    self.proxy_manager = create_bright_data_proxy_manager()
+                    self.logger.info("Proxy manager initialized from environment variables")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize proxy manager: {e}")
                 self.use_proxy = False
@@ -65,16 +79,50 @@ class EnhancedNaverPlaceCrawler:
         # 1. 프록시 사용 시도
         if self.use_proxy and self.proxy_manager:
             for url in urls:
+                start_time = time.time()
                 try:
                     self.logger.info(f"Trying proxy request to: {url}")
                     response, proxy = self.proxy_manager.make_request(url, **kwargs)
+                    response_time = time.time() - start_time
                     
                     if response and response.status_code == 200:
                         self.logger.info(f"Proxy request successful: {url}")
+                        # 성공 로깅
+                        log_proxy_request(
+                            proxy_endpoint=proxy.endpoint if proxy else "unknown",
+                            request_url=url,
+                            status_code=response.status_code,
+                            response_time=response_time,
+                            success=True,
+                            session_id=proxy.session_id if proxy else None,
+                            country=proxy.country if proxy else "KR"
+                        )
                         return response, 'proxy'
+                    else:
+                        # 실패 로깅
+                        log_proxy_request(
+                            proxy_endpoint=proxy.endpoint if proxy else "unknown",
+                            request_url=url,
+                            status_code=response.status_code if response else None,
+                            response_time=response_time,
+                            success=False,
+                            error_message=f"HTTP {response.status_code}" if response else "No response",
+                            session_id=proxy.session_id if proxy else None,
+                            country=proxy.country if proxy else "KR"
+                        )
                         
                 except Exception as e:
+                    response_time = time.time() - start_time
                     self.logger.warning(f"Proxy request failed for {url}: {e}")
+                    # 에러 로깅
+                    log_proxy_request(
+                        proxy_endpoint="unknown",
+                        request_url=url,
+                        status_code=None,
+                        response_time=response_time,
+                        success=False,
+                        error_message=str(e)
+                    )
                     continue
             
             # 프록시 실패 시 리셋 시도
@@ -354,10 +402,19 @@ class EnhancedNaverPlaceCrawler:
             # 최종 결과 리포트
             self.logger.info(f"\n🎯 크롤링 완료: {success_count}/{total_count} 성공")
             
-            # 프록시 통계 출력
+            # 프록시 통계 출력 및 모니터링 리포트 생성
             if self.use_proxy and self.proxy_manager:
                 stats = self.proxy_manager.get_proxy_stats()
                 self.logger.info(f"📊 프록시 통계: {stats}")
+                
+                # 세션별 모니터링 리포트 생성
+                monitor_stats = self.proxy_monitor.get_usage_stats(hours=1)  # 최근 1시간
+                monitor_report = self.proxy_monitor.export_usage_report(hours=1, format='text')
+                self.logger.info(f"\n{monitor_report}")
+                
+                # 일일 요약 저장 (선택적)
+                if os.getenv('SAVE_DAILY_SUMMARY', 'false').lower() == 'true':
+                    self.proxy_monitor.save_daily_summary()
                 
         except Exception as e:
             self.logger.error(f"Crawl tracked places failed: {str(e)}")

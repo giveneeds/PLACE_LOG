@@ -30,7 +30,9 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        # Bright Data Proxy Configuration
+        # Bright Data API Configuration
+        BRIGHT_DATA_API_KEY: ${{ secrets.BRIGHT_DATA_API_KEY }}
+        # Bright Data Proxy Configuration (선택사항 - API 키가 있으면 자동 구성)
         BRIGHT_DATA_ENDPOINT: ${{ secrets.BRIGHT_DATA_ENDPOINT }}
         BRIGHT_DATA_USERNAME: ${{ secrets.BRIGHT_DATA_USERNAME }}
         BRIGHT_DATA_PASSWORD: ${{ secrets.BRIGHT_DATA_PASSWORD }}
