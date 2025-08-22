@@ -18,6 +18,7 @@ export default function LoginPage() {
   const supabase = createClient()
   const { user, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -25,10 +26,11 @@ export default function LoginPage() {
 
   // 이미 로그인된 경우 대시보드로 리다이렉트
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !isRedirecting) {
+      setIsRedirecting(true)
       router.push('/dashboard')
     }
-  }, [user, authLoading, router])
+  }, [user, authLoading, router, isRedirecting])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,12 +51,11 @@ export default function LoginPage() {
         description: '환영합니다!',
       })
 
-      // Check for redirect parameter
-      const searchParams = new URLSearchParams(window.location.search)
-      const redirectUrl = searchParams.get('redirect') || '/dashboard'
+      // 리다이렉트 플래그 설정하고 잠시 기다린 후 이동
+      setIsRedirecting(true)
       
-      router.push(redirectUrl)
-      router.refresh()
+      // useEffect가 자동으로 리다이렉트하도록 하기 위해 바로 이동하지 않음
+      // Supabase auth state가 업데이트되면 useEffect에서 처리됨
     } catch (error: any) {
       console.error('Login error:', error)
       
@@ -71,17 +72,25 @@ export default function LoginPage() {
         description: errorMessage,
         variant: 'destructive',
       })
+      
+      // 로그인 실패 시 리다이렉트 플래그 해제
+      setIsRedirecting(false)
     } finally {
-      setLoading(false)
+      // 에러가 발생한 경우에만 로딩과 리다이렉트 플래그 해제
+      if (!isRedirecting) {
+        setLoading(false)
+      }
     }
   }
 
-  // AuthProvider가 아직 로딩 중이면 로딩 표시
-  if (authLoading) {
+  // AuthProvider가 아직 로딩 중이거나 리다이렉트 중이면 로딩 표시
+  if (authLoading || isRedirecting) {
     return (
       <div className="min-h-screen bg-dark-base flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="text-lg text-gray-400">로딩 중...</div>
+          <div className="text-lg text-gray-400">
+            {isRedirecting ? '대시보드로 이동 중...' : '로딩 중...'}
+          </div>
         </div>
       </div>
     )
@@ -123,7 +132,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  disabled={loading}
+                  disabled={loading || isRedirecting}
                   className="bg-dark-elevated2 border-gray-700 focus:border-primary text-white placeholder:text-gray-500"
                 />
               </div>
@@ -136,7 +145,7 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
-                  disabled={loading}
+                  disabled={loading || isRedirecting}
                   className="bg-dark-elevated2 border-gray-700 focus:border-primary text-white placeholder:text-gray-500"
                 />
               </div>
@@ -145,10 +154,10 @@ export default function LoginPage() {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={loading}
+                disabled={loading || isRedirecting}
                 size="lg"
               >
-                {loading ? '로그인 중...' : '로그인'}
+                {loading ? '로그인 중...' : isRedirecting ? '이동 중...' : '로그인'}
               </Button>
               
               <div className="text-sm text-center text-gray-400">
