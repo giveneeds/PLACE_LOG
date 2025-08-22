@@ -27,7 +27,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (authUser) {
       try {
         console.log('Updating user with role for:', authUser.id)
-        const role = await getUserRole(authUser.id)
+        // Add timeout to prevent hanging
+        const rolePromise = getUserRole(authUser.id)
+        const timeoutPromise = new Promise<UserRole>((_, reject) => {
+          setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
+        })
+        
+        const role = await Promise.race([rolePromise, timeoutPromise]).catch((error) => {
+          console.error('Role fetch failed or timed out:', error)
+          return 'user' // Default fallback
+        })
+        
         const userWithRole: UserWithRole = { ...authUser, role: role || 'user' }
         setUser(userWithRole)
         setUserRole(role || 'user')
@@ -70,7 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    getUser()
+    // Fallback timeout to ensure loading never gets stuck
+    const fallbackTimeout = setTimeout(() => {
+      console.warn('Auth loading timeout reached, clearing loading state')
+      setLoading(false)
+    }, 10000) // 10 second maximum loading time
+
+    getUser().finally(() => {
+      clearTimeout(fallbackTimeout)
+    })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.id || 'No user')
