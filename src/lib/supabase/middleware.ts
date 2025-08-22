@@ -54,7 +54,14 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // 세션 업데이트 시도
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  // 인증 에러가 있는 경우 로그
+  if (error) {
+    console.error('Middleware auth error:', error)
+  }
+  
   const pathname = request.nextUrl.pathname
 
   // Public routes that don't require authentication
@@ -66,7 +73,7 @@ export async function updateSession(request: NextRequest) {
   const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
 
   // Protected routes that require authentication
-  const protectedRoutes = ['/dashboard']
+  const protectedRoutes = ['/dashboard', '/tracking', '/recipes']
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
   // If trying to access protected route without authentication
@@ -76,11 +83,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // If user is authenticated but trying to access login/signup, redirect to dashboard
-  // 임시로 비활성화 - 무한 로딩 문제 해결을 위해
-  // if (user && (pathname === '/login' || pathname === '/signup')) {
-  //   return NextResponse.redirect(new URL('/dashboard', request.url))
-  // }
+  // 로그인/회원가입 페이지 리다이렉트는 클라이언트 사이드에서 처리
+  // 미들웨어에서는 처리하지 않음 (무한 루프 방지)
 
   // Check admin routes
   if (isAdminRoute && user) {

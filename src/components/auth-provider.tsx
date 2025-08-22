@@ -53,14 +53,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (error) {
           console.error('Error getting user:', error)
+          // 에러가 있어도 로딩 상태를 해제
+          setUser(null)
+          setUserRole(null)
         } else {
           console.log('Initial user:', user?.id || 'No user')
+          await updateUserWithRole(user)
         }
-        
-        await updateUserWithRole(user)
       } catch (error) {
         console.error('Unexpected error getting user:', error)
+        setUser(null)
+        setUserRole(null)
       } finally {
+        // 항상 로딩 상태를 해제
         setLoading(false)
       }
     }
@@ -69,9 +74,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.id || 'No user')
-      await updateUserWithRole(session?.user ?? null)
-      if (event === 'SIGNED_OUT') {
+      
+      // 로딩 상태 관리 개선
+      if (event === 'SIGNED_IN') {
+        setLoading(true)
+        await updateUserWithRole(session?.user ?? null)
         setLoading(false)
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
+        setUserRole(null)
+        setLoading(false)
+      } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        await updateUserWithRole(session?.user ?? null)
       }
     })
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,16 +10,25 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft } from 'lucide-react'
+import { useAuth } from '@/components/auth-provider'
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
+  const { user, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
+
+  // 이미 로그인된 경우 대시보드로 리다이렉트
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard')
+    }
+  }, [user, authLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,6 +74,17 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // AuthProvider가 아직 로딩 중이면 로딩 표시
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-dark-base flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-lg text-gray-400">로딩 중...</div>
+        </div>
+      </div>
+    )
   }
 
   return (

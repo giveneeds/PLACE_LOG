@@ -10,7 +10,7 @@ import { canAccessAdminFeatures } from '@/lib/auth/rbac'
 import { BarChart3, LogOut, User, Settings, BookOpen, TrendingUp } from 'lucide-react'
 
 export function Navbar() {
-  const { user, userRole } = useAuth()
+  const { user, userRole, loading } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -45,7 +45,9 @@ export function Navbar() {
           </Link>
           
           <div className="flex items-center gap-4">
-            {user ? (
+            {loading ? (
+              <div className="text-sm text-gray-400">로딩 중...</div>
+            ) : user ? (
               <>
                 <Link href="/dashboard">
                   <Button variant="ghost">대시보드</Button>
