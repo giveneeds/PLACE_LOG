@@ -51,7 +51,7 @@ interface RecentRecipe {
 }
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { toast } = useToast()
   const supabase = createClient()
   
@@ -111,13 +111,18 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
-    if (user) {
-      Promise.all([
-        fetchKeywords(),
-        fetchRecentRecipes()
-      ]).finally(() => setLoading(false))
+    if (!authLoading) {
+      if (user) {
+        Promise.all([
+          fetchKeywords(),
+          fetchRecentRecipes()
+        ]).finally(() => setLoading(false))
+      } else {
+        // 사용자가 없는 경우 즉시 로딩 완료 (AuthenticatedOnly가 처리함)
+        setLoading(false)
+      }
     }
-  }, [user, fetchKeywords, fetchRecentRecipes])
+  }, [user, authLoading, fetchKeywords, fetchRecentRecipes])
 
   // Subscribe to real-time updates
   useRealtimeUpdates('admin-updates', 'keyword-added', (payload) => {
