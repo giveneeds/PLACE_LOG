@@ -27,8 +27,12 @@ export default function LoginPage() {
   // 이미 로그인된 경우 대시보드로 리다이렉트
   useEffect(() => {
     if (!authLoading && user && !isRedirecting) {
+      console.log('Auto-redirecting logged in user to dashboard')
       setIsRedirecting(true)
-      router.push('/dashboard')
+      // 짧은 지연 후 리다이렉트하여 UI 업데이트 완료 보장
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
     }
   }, [user, authLoading, router, isRedirecting])
 

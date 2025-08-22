@@ -26,7 +26,12 @@
       "Bash(\"/c/Users/PC/AppData/Local/Programs/Python/Python312/python.exe\" test_simple_parsing.py)",
       "Bash(npm run build:*)",
       "Bash(dir:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_console_messages"
     ],
     "deny": []
   }

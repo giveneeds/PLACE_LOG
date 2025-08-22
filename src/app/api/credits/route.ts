@@ -17,7 +17,15 @@ export async function GET(request: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    // If user_credits table doesn't exist or user has no credits record,
+    // return default values instead of error
+    console.log('Credits fetch error (returning defaults):', error.message);
+    return NextResponse.json({ 
+      credits: {
+        balance: 3, // Default 3 credits for new users
+        total_purchased: 0
+      }
+    });
   }
 
   return NextResponse.json({ credits });

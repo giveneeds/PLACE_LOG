@@ -77,15 +77,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // 로딩 상태 관리 개선
       if (event === 'SIGNED_IN') {
-        setLoading(true)
-        await updateUserWithRole(session?.user ?? null)
-        setLoading(false)
+        try {
+          setLoading(true)
+          await updateUserWithRole(session?.user ?? null)
+        } catch (error) {
+          console.error('Error in SIGNED_IN handler:', error)
+        } finally {
+          setLoading(false)
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
         setUserRole(null)
         setLoading(false)
       } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        await updateUserWithRole(session?.user ?? null)
+        try {
+          await updateUserWithRole(session?.user ?? null)
+        } catch (error) {
+          console.error('Error in TOKEN_REFRESHED/USER_UPDATED handler:', error)
+        }
       }
     })
 

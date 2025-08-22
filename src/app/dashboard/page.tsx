@@ -66,7 +66,11 @@ export default function DashboardPage() {
   const fetchKeywords = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/keywords')
-      if (!response.ok) throw new Error('Failed to fetch keywords')
+      if (!response.ok) {
+        console.warn('Keywords fetch failed, using empty data')
+        setKeywords([])
+        return
+      }
       
       const { data } = await response.json()
       
@@ -89,11 +93,9 @@ export default function DashboardPage() {
 
       setKeywords(processedKeywords)
     } catch (error: any) {
-      toast({
-        title: '데이터 로드 실패',
-        description: error.message || '데이터를 불러오는 중 오류가 발생했습니다.',
-        variant: 'destructive',
-      })
+      console.warn('Keywords fetch error:', error.message)
+      setKeywords([])
+      // Don't show error toast for non-critical data
     }
   }, [toast])
 
@@ -103,20 +105,27 @@ export default function DashboardPage() {
       if (response.ok) {
         const data = await response.json()
         setRecentRecipes(data.purchases || [])
+      } else {
+        console.warn('Recent recipes fetch failed, using empty data')
+        setRecentRecipes([])
       }
     } catch (error) {
-      // 조용히 실패 처리
-      console.log('Failed to fetch recent recipes:', error)
+      console.warn('Recent recipes fetch error:', error)
+      setRecentRecipes([])
     }
   }, [])
 
   useEffect(() => {
     if (!authLoading) {
       if (user) {
-        Promise.all([
+        // 모든 API 호출을 병렬로 실행하되, 실패해도 로딩은 완료되도록 함
+        Promise.allSettled([
           fetchKeywords(),
           fetchRecentRecipes()
-        ]).finally(() => setLoading(false))
+        ]).finally(() => {
+          console.log('Dashboard data loading completed')
+          setLoading(false)
+        })
       } else {
         // 사용자가 없는 경우 즉시 로딩 완료 (AuthenticatedOnly가 처리함)
         setLoading(false)

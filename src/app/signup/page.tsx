@@ -27,7 +27,10 @@ export default function SignupPage() {
   // 이미 로그인된 경우 대시보드로 리다이렉트
   useEffect(() => {
     if (!authLoading && user) {
-      router.push('/dashboard')
+      console.log('Auto-redirecting logged in user to dashboard from signup')
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
     }
   }, [user, authLoading, router])
 
