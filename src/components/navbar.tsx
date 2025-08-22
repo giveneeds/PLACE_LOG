@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,23 @@ export function Navbar() {
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
+  
+  // Add a local timeout for navbar loading to prevent infinite loading
+  const [localLoading, setLocalLoading] = useState(true)
+  
+  useEffect(() => {
+    // Set a maximum timeout for navbar loading state
+    const timeout = setTimeout(() => {
+      setLocalLoading(false)
+    }, 3000) // 3 seconds max
+    
+    if (!loading) {
+      setLocalLoading(false)
+      clearTimeout(timeout)
+    }
+    
+    return () => clearTimeout(timeout)
+  }, [loading])
 
   const handleLogout = async () => {
     try {
@@ -45,7 +63,7 @@ export function Navbar() {
           </Link>
           
           <div className="flex items-center gap-4">
-            {loading ? (
+            {(loading && localLoading) ? (
               <div className="text-sm text-gray-400">로딩 중...</div>
             ) : user ? (
               <>
